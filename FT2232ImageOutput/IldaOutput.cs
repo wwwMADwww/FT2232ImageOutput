@@ -55,7 +55,7 @@ namespace FT2232ImageOutput
                         byte y = (byte)((ildaY / 256) + 128);
 
 
-                        // do not need to not draw the same dot multiple times
+                        // do not need to draw the same dot multiple times
                         if (x == oldX && y == oldY && ildaBlanking == oldIsBlanking)
                             continue;
 
