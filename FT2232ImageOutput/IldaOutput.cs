@@ -85,7 +85,7 @@ namespace FT2232ImageOutput
                             bufApos++;
 
                             // after each data bit transmission Shift pin goes HIGH
-                            // after each 7th data bit transmission Store pin goes HIGH
+                            // after each 8th data bit transmission Store pin goes HIGH
                             bufA[bufApos] = (byte)((1 << pinShift) | (bit == 7 ? (1 << pinStore) : 0));
                             bufApos++;
 
