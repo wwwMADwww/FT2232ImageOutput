@@ -14,9 +14,11 @@ namespace FT2232ImageOutput
     public class IldaOutput
     {
         // see the schematic diagram
-        const byte pinDataX = 0; // data X (DS or SER)
-        const byte pinDataY = 1; // data Y (DS or SER)
-        const byte pinDataZ = 2; // data Z (DS or SER)
+        const byte pinDataX1 = 0; // data Xlo (DS or SER)
+        const byte pinDataX2 = 1; // data Xhi (DS or SER)
+        const byte pinDataY1 = 2; // data Ylo (DS or SER)
+        const byte pinDataY2 = 3; // data Yhi (DS or SER)
+        const byte pinDataZ  = 4; // data Z (DS or SER)
 
         const byte pinShift = 6; // shift clock (SHCP or SRCLK)
         const byte pinStore = 7; // store clock (STCP or RCLK)
@@ -33,7 +35,7 @@ namespace FT2232ImageOutput
             // must be a multiple of 16
             var bufsize = (2 * 8) * 256; // 4096
 
-            byte[] bufA = new byte[bufsize];
+            byte[] dataBuf = new byte[bufsize];
             int bufApos = 0;
 
             do
@@ -41,52 +43,58 @@ namespace FT2232ImageOutput
 
                 foreach (var frame in frames)
                 {
-                    byte oldX = 0;
-                    byte oldY = 0;
-                    bool oldIsBlanking = true;
+                    ushort oldX = 0;
+                    ushort oldY = 0;
+                    byte oldZ = 0;
 
                     foreach (var record in frame.Records)
                     {
 
                         GetXYZFromRecord(frame.Header.Format, record, out var ildaX, out var ildaY, out var ildaBlanking);
-                        
-                        // ilda stores coordinates in 16 bit, but my DACs currently is only 8 bit
-                        byte x = (byte)((ildaX / 256) + 128);
-                        byte y = (byte)((ildaY / 256) + 128);
+
+                        // do not need to not draw blanked dots
+                        if (ildaBlanking)
+                            continue;
+
+                        ushort x = (ushort)(ildaX + 32768);
+                        ushort y = (ushort)(ildaY + 32768);
+                        byte z = (byte)(ildaBlanking ? 255 : 0);
 
 
                         // do not need to not draw the same dot multiple times
-                        if (x == oldX && y == oldY && ildaBlanking == oldIsBlanking)
+                        if (x == oldX && y == oldY && z == oldZ)
                             continue;
 
                         oldX = x;
                         oldY = y;
-                        oldIsBlanking = ildaBlanking;
+                        oldZ = z;
 
+                        byte x1, x2, y1, y2, z1;
 
-                        // preparing data for shift registers and putting it to the buffer
-
-                        byte blanking = (byte)(((ildaBlanking ? 1 : 0) << pinDataZ) & (1 << pinDataZ));
+                        x1 = (byte)(x & 0xFF);
+                        x2 = (byte)((x >> 8) & 0xFF);
+                        y1 = (byte)(y & 0xFF);
+                        y2 = (byte)((y >> 8) & 0xFF);
+                        z1 = z;
 
                         for (int bit = 7; bit >= 0; bit--)
                         {
                             byte data = 0;
 
-                            // X to first shift register
-                            data |= (byte)((((x >> bit) & 1) << pinDataX) & (1 << pinDataX));
-                            // Y to second shift register
-                            data |= (byte)((((y >> bit) & 1) << pinDataY) & (1 << pinDataY));
-                            // blanking (Z) to third shift register (only on/off for now)
-                            data |= blanking;
+                            data |= GetBit(x1, bit, pinDataX1);
+                            data |= GetBit(x2, bit, pinDataX2);
+                            data |= GetBit(y1, bit, pinDataY1);
+                            data |= GetBit(y2, bit, pinDataY2);
+                            data |= GetBit(z1, bit, pinDataZ);
                             // Shift and Store clock pins goes LOW
 
                             // write data to buffer
-                            bufA[bufApos] = data;
+                            dataBuf[bufApos] = data;
                             bufApos++;
 
                             // after each data bit transmission Shift pin goes HIGH
                             // after each 7th data bit transmission Store pin goes HIGH
-                            bufA[bufApos] = (byte)((1 << pinShift) | (bit == 7 ? (1 << pinStore) : 0));
+                            dataBuf[bufApos] = (byte)((1 << pinShift) | (bit == 7 ? (1 << pinStore) : 0));
                             bufApos++;
 
                         }
@@ -94,23 +102,12 @@ namespace FT2232ImageOutput
 
                         // writing buffer to ft2232 channel
 
-                        var writtenTotalA = 0;
-
-                        if (bufApos == bufA.Length)
+                        if (bufApos == dataBuf.Length)
                         {
-
-                            while (writtenTotalA < bufA.Length)
-                            {
-                                uint writtenA = 0;
-                                status = channel.Write(bufA.Skip(writtenTotalA).ToArray(), bufA.Length - writtenTotalA, ref writtenA);
-                                Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
-                                writtenTotalA += (int)writtenA;
-                            }
+                            WriteToChannel(channel, dataBuf);
 
                             bufApos = 0;
                         }
-
-
 
                     }
 
@@ -122,6 +119,21 @@ namespace FT2232ImageOutput
             Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
 
         }
+
+        void WriteToChannel(FTDI channel, byte[] dataBuf)
+        {
+            var writtenTotal = 0;
+
+            while (writtenTotal < dataBuf.Length)
+            {
+                uint written = 0;
+                var status = channel.Write(dataBuf.Skip(writtenTotal).ToArray(), dataBuf.Length - writtenTotal, ref written);
+                Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
+                writtenTotal += (int)written;
+            }
+        }
+
+        byte GetBit(byte value, int bit, int pin) => (byte)((((value >> bit) & 1) << pin) & (1 << pin));
 
         void GetXYZFromRecord(FormatCode formatCode, CoordinateRecord record, out short x, out short y, out bool blanking)
         {
@@ -166,6 +178,8 @@ namespace FT2232ImageOutput
                 default: throw new ArgumentException($"Unknown FormatCode '{formatCode}'", nameof(formatCode));
             }
         }
+
+
 
         FTDI OpenChannel(string channelName, uint baudRate)
         {
