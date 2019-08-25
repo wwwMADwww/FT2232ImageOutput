@@ -14,9 +14,8 @@ FT2232ImageOutput.exe -f ..\..\samplefiles\lain.ild -b 5000000
 Schematic diagram for the code (from `FT2232ImageOutput/diagrams/`):
 ![Schematic](/FT2232ImageOutput/diagrams/schematic.png?raw=true "Schematic")
 
-Result photos on my setup (from `FT2232ImageOutput/samplefiles/`):
-![pikachu](/FT2232ImageOutput/samplefiles/pikachu.jpg?raw=true "pikachu")
-![lain](/FT2232ImageOutput/samplefiles/lain.jpg?raw=true "lain")
+Result photo on my setup (from `FT2232ImageOutput/samplefiles/`):
+![lain](/FT2232ImageOutput/samplefiles/lain.png?raw=true "lain")
 
 ## Plans
  - Add realtime streaming feature
