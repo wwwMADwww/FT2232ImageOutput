@@ -22,6 +22,6 @@ Result photos on my setup (from `FT2232ImageOutput/samplefiles/`):
  - Add realtime streaming feature
  - Add different image sources
  - Add different output targets and maybe devices
- - Increase DAC resolution to 10-12 bits
- - Add DAC to Z channel to using it as blanking and b/w color output
+ - ~~Increase DAC resolution to 10-12 bits~~
+ - ~~Add DAC to Z channel to using it as blanking and~~ b/w color output
  - Migrating to net.core
