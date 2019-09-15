@@ -22,6 +22,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,6 +33,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CommandLine, Version=2.6.0.0, Culture=neutral, PublicKeyToken=5a870481e358d379, processorArchitecture=MSIL">
@@ -50,8 +53,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLineParams.cs" />
-    <Compile Include="IldaFileReader.cs" />
-    <Compile Include="IldaOutput.cs" />
+    <Compile Include="FT2232HardwareOutput.cs" />
+    <Compile Include="DuplicateReduceFrameProcessor.cs" />
+    <Compile Include="AddBlankingPointsFrameProcessor.cs" />
+    <Compile Include="GrayscaleFrameProcessor.cs" />
+    <Compile Include="TestLineImageSource.cs" />
+    <Compile Include="ScaleMaxValuesFrameProcessor.cs" />
+    <Compile Include="ShiftRegisterPointBitMapper.cs" />
+    <Compile Include="IPointBitMapper.cs" />
+    <Compile Include="IFrameProcessor.cs" />
+    <Compile Include="IHardwareOutput.cs" />
+    <Compile Include="IImageSource.cs" />
+    <Compile Include="IldaImageSource.cs" />
+    <Compile Include="ImageFrame.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
