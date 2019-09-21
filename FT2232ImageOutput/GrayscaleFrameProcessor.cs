@@ -23,9 +23,25 @@ namespace FT2232ImageOutput
             var res = new ImageFrame();
             res.Duration = frame.Duration;
             res.Number = frame.Number;
-            var points = new List<ImagePoint>(frame.Points.Count());
-            
-            foreach (var point in frame.Points)
+            // var points = new List<ImagePoint>(frame.Points.Count());
+
+            if (!frame.Points.Any())
+            {
+                res.Points = new ImagePoint[0];
+                return res;
+            }
+
+            res.Points = GetPoints(frame.Points); // points;
+
+            return res;
+
+        }
+
+        IEnumerable<ImagePoint> GetPoints(IEnumerable<ImagePoint> originalPoints)
+        {
+
+
+            foreach (var point in originalPoints)
             {
 
                 // almost fisrt from google
@@ -55,14 +71,13 @@ namespace FT2232ImageOutput
 
                 }
 
-                points.Add(newPoint);
+                yield return newPoint;
             }
 
-            res.Points = points;
-
-            return res;
+            yield break;
 
         }
+
 
     }
 

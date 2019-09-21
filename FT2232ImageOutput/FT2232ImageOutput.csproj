@@ -53,10 +53,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLineParams.cs" />
+    <Compile Include="MonochromeFrameProcessor.cs" />
+    <Compile Include="IldaImageSourceBase.cs" />
+    <Compile Include="IMainProcessor.cs" />
+    <Compile Include="SineWaveFrameProcessor.cs" />
     <Compile Include="FT2232HardwareOutput.cs" />
     <Compile Include="DuplicateReduceFrameProcessor.cs" />
     <Compile Include="AddBlankingPointsFrameProcessor.cs" />
     <Compile Include="GrayscaleFrameProcessor.cs" />
+    <Compile Include="MainProcessor.cs" />
+    <Compile Include="IldaMultipleImageSource.cs" />
+    <Compile Include="RandomImageSource.cs" />
+    <Compile Include="SolidRectangleImageSource.cs" />
     <Compile Include="TestLineImageSource.cs" />
     <Compile Include="ScaleMaxValuesFrameProcessor.cs" />
     <Compile Include="ShiftRegisterPointBitMapper.cs" />
@@ -79,5 +87,6 @@
       <Name>DSS.ILDA</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

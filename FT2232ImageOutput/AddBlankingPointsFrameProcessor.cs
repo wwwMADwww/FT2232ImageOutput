@@ -26,21 +26,27 @@ namespace FT2232ImageOutput
                 return res;
             }
 
-            var points = new List<ImagePoint>(frame.Points.Count() + 2);
-            
-            foreach (var point in frame.Points)
-            {
-                points.Add(Copy(point));
-            }
-
-            var p = Copy(frame.Points.Last());
-            p.Blanking = true;
-            points.Add(p);
-            
-            res.Points = points;
+            res.Points = GetPoints(frame.Points); //points;
 
             return res;
 
+        }
+
+
+        IEnumerable<ImagePoint> GetPoints(IEnumerable<ImagePoint> originalPoints)
+        {
+
+            foreach (var point in originalPoints)
+            {
+                yield return Copy(point);
+            }
+
+            var p = Copy(originalPoints.Last());
+            p.Blanking = true;
+
+            yield return p;
+
+            yield break;
         }
 
         ImagePoint Copy(ImagePoint point)

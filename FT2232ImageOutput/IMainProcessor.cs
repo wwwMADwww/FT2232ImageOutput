@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace FT2232ImageOutput
 {
-    public interface IHardwareOutput
+    public interface IMainProcessor
     {
-        void Output(IEnumerable<byte> bytes);
+
+        void Start();
+
     }
 }

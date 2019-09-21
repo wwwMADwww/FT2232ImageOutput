@@ -29,37 +29,12 @@ namespace FT2232ImageOutput
             _channel = OpenChannel(_channelName, _baudrate);
         }
 
-        public void Output(IEnumerable<ImageFrame> frames)
+        public void Output(IEnumerable<byte> bytes)
         {
-
-            using (var dataStream = new MemoryStream(_bufferSize))
-            {
-
-                foreach (var frame in frames)
-                {
-                    foreach(var point in frame.Points)
-                    {
-                        var bits = _pointBitMapper.Map(point);
-
-                        dataStream.Write(bits, 0, bits.Length);
-
-                        if (dataStream.Length >= _bufferSize)
-                        {
-                            WriteToChannel(_channel, dataStream.ToArray());
-                            dataStream.SetLength(0);
-                        }
-                    }
-
-                    if (dataStream.Length >= 0)
-                    {
-                        WriteToChannel(_channel, dataStream.ToArray());
-                        dataStream.SetLength(0);
-                    }
-                }
-
-                dataStream.SetLength(0);
-                dataStream.Close();
-            }
+            
+            var buffer = bytes.ToArray();
+            
+            WriteToChannel(_channel, buffer);
 
 
         }
@@ -80,7 +55,16 @@ namespace FT2232ImageOutput
                 status = channel.Write(sendbuf, dataBuf.Length - writtenTotal, ref written);
 
                 // TODO: reconnect and retry when fails
-                Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
+                // Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
+
+                if (status == FTDI.FT_STATUS.FT_IO_ERROR)
+                {
+                    status = _channel.Close();
+                    _channel = OpenChannel(_channelName, _baudrate);
+                }
+                else
+                    Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
+
                 writtenTotal += (int)written;
 
                 sendbuf = new byte[dataBuf.Length];
@@ -100,9 +84,15 @@ namespace FT2232ImageOutput
             for (int i = 0; i < 60; i++)
             {
                 status = res.OpenBySerialNumber(channelName);
-                if (status != FTD2XX_NET.FTDI.FT_STATUS.FT_DEVICE_NOT_FOUND)
+                if (
+                    status != FTD2XX_NET.FTDI.FT_STATUS.FT_DEVICE_NOT_FOUND &&
+                    status != FTD2XX_NET.FTDI.FT_STATUS.FT_DEVICE_NOT_OPENED
+                    )
                     break;
                 Thread.Sleep(1000);
+                res = new FTDI();
+                FTDI.FT_DEVICE_INFO_NODE[] list = new FTDI.FT_DEVICE_INFO_NODE[200];
+                status = res.GetDeviceList(list);
             }
             Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
 

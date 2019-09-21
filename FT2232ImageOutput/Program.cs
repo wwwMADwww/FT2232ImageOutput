@@ -26,14 +26,22 @@ namespace FT2232ImageOutput
 
             Console.WriteLine($"Filename is {filepath}");
             Console.WriteLine($"Baudrate is {options.Baudrate}");
-            
-            // TODO: dedicated domain class
+
+            // TODO: config file for building and configure everything
 
             var targetMaxValues = new ImageMaxValues() 
             {
                 MaxRGB = 255,
                 MinX = 0, MaxX = 1023,
                 MinY = 0, MaxY = 1023,
+                MinZ = 0, MaxZ = 15,
+            };
+            
+            var generateMaxValues = new ImageMaxValues() 
+            {
+                MaxRGB = 255,
+                MinX = 0, MaxX = 63,
+                MinY = 0, MaxY = 63,
                 MinZ = 0, MaxZ = 15,
             };
 
@@ -53,56 +61,45 @@ namespace FT2232ImageOutput
             //     MinZ = 0, MaxZ = 255,
             // };
 
-            
+            // List<string> ildafiles = new List<string>();
+
             var imageSource = new IldaImageSource(filepath);
+            // var imageSource = new IldaMultipleImageSource(ildafiles);
             // var imageSource = new LineImageSource(generateMaxValues);
-
-
-            // TODO: remove collection copying where possible
-            // TODO: frame timings
-
-
-            // TODO: config for building and configure pipeline
+            // var imageSource = new SolidRectangleImageSource(generateMaxValues);
+            // var imageSource = new RandomImageSource(generateMaxValues);
+            
 
             var frameProcessors = new List<IFrameProcessor>() {
-
+                                
                 new ScaleMaxValuesFrameProcessor(imageSource.MaxValues, targetMaxValues),
-                
+
+                new MonochromeFrameProcessor(MonochromeFrameProcessorSourceColor.Green),
+
                 new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ),
                 
                 new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
 
+                new SineWaveFrameProcessor(TimeSpan.FromMilliseconds(10), 150, 3.5f, .5f, targetMaxValues),
+                
                 new AddBlankingPointsFrameProcessor()
 
             };
 
-            var pointMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4);
-            // var pointMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8);
+            var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4);
+            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8);
 
-            // TODO: decouple mapper and hw output and do buffering bits for sending those to hw repeatedly while next frame is processing in parallel
-            var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointMapper);
-
-            var frames = imageSource.GetFrames();
-
-            // TODO: parallel processing and output
-            while (true)
-            {
-                IEnumerable<ImageFrame> processedFrames = frames;
+            var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointBitMapper);
 
 
-                foreach (var fp in frameProcessors)
-                {
-                    processedFrames = processedFrames.Select(f => fp.Process(f));
-                }
+            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 60, 1000);
 
-                processedFrames = processedFrames.ToArray();
-                
-                hardwareOutput.Output(processedFrames);
-                
-            }
+            mainProcess.Start();
 
-            return 0;
+            Thread.Sleep(Timeout.Infinite);
 
+            return 1;
+            
         }
 
 

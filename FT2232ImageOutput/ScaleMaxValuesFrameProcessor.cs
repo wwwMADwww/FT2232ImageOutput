@@ -23,30 +23,43 @@ namespace FT2232ImageOutput
             var res = new ImageFrame();
             res.Duration = frame.Duration;
             res.Number = frame.Number;
-            var points = new List<ImagePoint>(frame.Points.Count());
-            
-            foreach (var point in frame.Points)
+            // var points = new List<ImagePoint>(frame.Points.Count());
+
+            if (!frame.Points.Any())
+            {
+                res.Points = new ImagePoint[0];
+                return res;
+            }
+
+
+            res.Points = GetPoints(frame.Points); // points;
+        
+            return res;
+        
+        }
+
+        IEnumerable<ImagePoint> GetPoints(IEnumerable<ImagePoint> originalPoints)
+        {
+            foreach (var point in originalPoints)
             {
                 var newPoint = new ImagePoint()
                 {
                     X = ConvertRange(_maxValues.MinX, _maxValues.MaxX, _targetMaxValues.MinX, _targetMaxValues.MaxX, point.X),
                     Y = ConvertRange(_maxValues.MinY, _maxValues.MaxY, _targetMaxValues.MinY, _targetMaxValues.MaxY, point.Y),
                     Z = ConvertRange(_maxValues.MinZ, _maxValues.MaxZ, _targetMaxValues.MinZ, _targetMaxValues.MaxZ, point.Z),
-                    
+
                     R = ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.R),
                     G = ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.G),
                     B = ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.B),
-        
+
                     Blanking = point.Blanking
                 };
-        
-                points.Add(newPoint);
+
+                // points.Add(newPoint);
+                yield return newPoint;
             }
-        
-            res.Points = points;
-        
-            return res;
-        
+
+            yield break;
         }
 
         // public ImageFrame Process(ImageFrame frame)

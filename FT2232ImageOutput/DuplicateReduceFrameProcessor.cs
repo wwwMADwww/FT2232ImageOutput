@@ -21,17 +21,27 @@ namespace FT2232ImageOutput
             var res = new ImageFrame();
             res.Duration = frame.Duration;
             res.Number = frame.Number;
-            var points = new List<ImagePoint>(frame.Points.Count());
+            // var points = new List<ImagePoint>(frame.Points.Count());
 
             if (!frame.Points.Any())
             {
-                res.Points = points;
+                res.Points = new ImagePoint[0]; //points;
                 return res;
             }
 
+
+            res.Points = GetPoints(frame.Points); // points;
+
+            return res;
+
+        }
+
+        IEnumerable<ImagePoint> GetPoints(IEnumerable<ImagePoint> originalPoints)
+        {
+
             ImagePoint pointOld = null;
 
-            foreach (var point in frame.Points)
+            foreach (var point in originalPoints)
             {
 
                 if (pointOld == null || !(
@@ -46,6 +56,9 @@ namespace FT2232ImageOutput
                         point.R == pointOld.R &&
                         point.G == pointOld.G &&
                         point.B == pointOld.B
+                    ) : true) &&
+                    (_reduceMode.HasFlag(DuplicateReduceFrameProcessorFlags.Blanking) ? (
+                        point.Blanking && pointOld.Blanking
                     ) : true)
                 ))
                 {
@@ -61,16 +74,16 @@ namespace FT2232ImageOutput
 
                         Blanking = point.Blanking
                     };
-                    points.Add(newPoint);
+                    // points.Add(newPoint);
+                    yield return newPoint;
                 }
-                
+
                 pointOld = point;
 
             }
 
-            res.Points = points;
 
-            return res;
+            yield break;
 
         }
 
@@ -81,9 +94,10 @@ namespace FT2232ImageOutput
         CoordXY = 1, 
         CoordZ = 2, 
         Color = 4,
-    
+        Blanking = 8,
+
         Coords = CoordXY | CoordZ,
-        All = Coords | Color
+        All = Coords | Color | Blanking
     }
 
 }
