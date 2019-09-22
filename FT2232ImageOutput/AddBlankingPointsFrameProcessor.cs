@@ -36,15 +36,20 @@ namespace FT2232ImageOutput
         IEnumerable<ImagePoint> GetPoints(IEnumerable<ImagePoint> originalPoints)
         {
 
+
+            //var p1 = Copy(originalPoints.First());
+            //p1.Blanking = true;
+            //yield return p1;
+
             foreach (var point in originalPoints)
             {
                 yield return Copy(point);
             }
 
-            var p = Copy(originalPoints.Last());
-            p.Blanking = true;
+            var p2 = Copy(originalPoints.Last());
+            p2.Blanking = true;
 
-            yield return p;
+            yield return p2;
 
             yield break;
         }
