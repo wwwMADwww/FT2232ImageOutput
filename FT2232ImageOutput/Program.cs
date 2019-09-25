@@ -68,7 +68,33 @@ namespace FT2232ImageOutput
             // var imageSource = new LineImageSource(generateMaxValues);
             // var imageSource = new SolidRectangleImageSource(generateMaxValues);
             // var imageSource = new RandomImageSource(generateMaxValues);
-            
+
+            // var imageSource = new MatrixBootstrap().CrateMatrix(
+            //     filepath,
+            //     new MatrixImageSourceConfig()
+            //     {
+            //         Width = 1024,
+            //         Height = 1024,
+            //         MaxRGB = 255,
+            //         Cols = 28,
+            //         Rows = 19,
+            //         TrailLength = 25,
+            //         TrailGenerationRate = 20,
+            //         TrailChangeRateMin = 15,
+            //         TrailChangeRateMax = 50,
+            //         TrailChangeIntencity = 50
+            //     },
+            //     new ImageMaxValues()
+            //     {
+            //         MaxRGB = 255,
+            //         MinX = 0,
+            //         MaxX = 35,
+            //         MinY = 0,
+            //         MaxY = 50,
+            //         MinZ = 0,
+            //         MaxZ = 15,
+            //     }
+            // ); ;
 
             var frameProcessors = new List<IFrameProcessor>() {
                                 
@@ -76,11 +102,11 @@ namespace FT2232ImageOutput
 
                 new MonochromeFrameProcessor(MonochromeFrameProcessorSourceColor.Green),
 
-                new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ),
+                new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ), 
                 
                 new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
 
-                new SineWaveFrameProcessor(TimeSpan.FromMilliseconds(10), 150, 3.5f, .5f, targetMaxValues),
+                // new SineWaveFrameProcessor(TimeSpan.FromMilliseconds(10), 150, 3.5f, .5f, targetMaxValues),
                 
                 new AddBlankingPointsFrameProcessor()
 
@@ -92,7 +118,7 @@ namespace FT2232ImageOutput
             var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointBitMapper);
 
 
-            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 60, 1000);
+            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 24, 1000);
 
             mainProcess.Start();
 
