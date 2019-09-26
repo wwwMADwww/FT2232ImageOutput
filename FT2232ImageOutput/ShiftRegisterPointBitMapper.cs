@@ -18,6 +18,9 @@ namespace FT2232ImageOutput
         Mode_Sr8x3_XY10_Z4,
         Mode_Sr8x3_XY10_Z4_2,
 
+        // 6 registers, 10 bit XY R2R DACs, 4 bit Z R2R DAC
+        Mode_Sr8x6_XY10_Z4,
+
         // 5 registers, 16 bit XY R2R DACs, 8 bit Z R2R DAC
         Mode_Sr8x5_XY16_Z8
     }
@@ -38,6 +41,7 @@ namespace FT2232ImageOutput
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8 : return Mode_Sr8x3_XY8_Z8(point);
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4: return Mode_Sr8x3_XY10_Z4(point);
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4_2: return Mode_Sr8x3_XY10_Z4_2(point);
+                case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4: return Mode_Sr8x6_XY10_Z4(point);
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x5_XY16_Z8: return Mode_Sr8x5_XY16_Z8(point);
                 default:
                     throw new ArgumentException($"Unknown mapping mode {_mode}", nameof(_mode));
@@ -204,6 +208,64 @@ namespace FT2232ImageOutput
         }
 
 
+        byte[] Mode_Sr8x6_XY10_Z4(ImagePoint point)
+        {
+
+            // TODO: make configurable
+            // see the schematic diagram
+            byte pinDataX1   = 0; // |xxxx----|
+            byte pinDataX2   = 1; // |xxxx----|
+            byte pinDataY1   = 2; // |yyyy----|
+            byte pinDataY2   = 3; // |yyyy----|
+            byte pinDataX3Y3 = 4; // |xxyy----|
+            byte pinDataZ    = 5; // |zzzz----|
+
+            byte pinShift = 6; // shift clock (SHCP or SRCLK)
+            byte pinStore = 7; // store clock (STCP or RCLK)
+
+            var buf = new byte[2 * 4];
+            int bufpos = 0;
+
+            byte x1, x2, y1, y2, x3y3, z1;
+
+            x1 = (byte)(point.X & 0b1111);
+            x2 = (byte)((point.X >> 4) & 0b1111);
+            y1 = (byte)(point.Y & 0b1111);
+            y2 = (byte)((point.Y >> 4) & 0b1111);
+            x3y3 = (byte)(((point.X >> 8) & 0b11) | (((point.Y >> 8) & 0b11) << 2));
+            z1 = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
+            
+            for (int bit = 3; bit >= 0; bit--)
+            {
+                byte data = 0;
+
+                data |= GetBit(x1, bit, pinDataX1);
+                data |= GetBit(x2, bit, pinDataX2);
+
+                data |= GetBit(y1, bit, pinDataY1);
+                data |= GetBit(y2, bit, pinDataY2);
+
+                data |= GetBit(x3y3, bit, pinDataX3Y3);
+
+                data |= GetBit(z1, bit, pinDataZ);
+                // Shift and Store clock pins goes LOW
+
+                // write data to buffer
+                buf[bufpos] = data;
+                bufpos++;
+
+                // after each data bit transmission Shift pin goes HIGH
+                buf[bufpos] = (byte)(buf[bufpos - 1] | (1 << pinShift));
+                bufpos++;
+
+            }
+
+            // after each 4th data bit transmission Store pin goes HIGH
+            buf[0] |= (byte)(1 << pinStore);
+
+            return buf;
+        }
+
 
         byte[] Mode_Sr8x5_XY16_Z8(ImagePoint point)
         {
@@ -228,7 +290,7 @@ namespace FT2232ImageOutput
             x2 = (byte)((point.X >> 8) & 0xFF);
             y1 = (byte)(point.Y & 0xFF);
             y2 = (byte)((point.Y >> 8) & 0xFF);
-            z1 = (byte)(point.Blanking ? 255 : 0);
+            z1 = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
 
             for (int bit = 7; bit >= 0; bit--)
             {
