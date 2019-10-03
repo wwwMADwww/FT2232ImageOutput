@@ -58,6 +58,7 @@
     <Compile Include="MonochromeFrameProcessor.cs" />
     <Compile Include="IldaImageSourceBase.cs" />
     <Compile Include="IMainProcessor.cs" />
+    <Compile Include="RotateFrameProcessor.cs" />
     <Compile Include="SineWaveFrameProcessor.cs" />
     <Compile Include="FT2232HardwareOutput.cs" />
     <Compile Include="DuplicateReduceFrameProcessor.cs" />
@@ -66,6 +67,9 @@
     <Compile Include="MainProcessor.cs" />
     <Compile Include="IldaMultipleImageSource.cs" />
     <Compile Include="RandomImageSource.cs" />
+    <Compile Include="MeandreImageSource.cs" />
+    <Compile Include="TwoPointsImageSource.cs" />
+    <Compile Include="SpruceImageSource.cs" />
     <Compile Include="SolidRectangleImageSource.cs" />
     <Compile Include="TestLineImageSource.cs" />
     <Compile Include="ScaleMaxValuesFrameProcessor.cs" />

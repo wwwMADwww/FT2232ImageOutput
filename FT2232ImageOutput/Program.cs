@@ -40,8 +40,8 @@ namespace FT2232ImageOutput
             var generateMaxValues = new ImageMaxValues() 
             {
                 MaxRGB = 255,
-                MinX = 0, MaxX = 63,
-                MinY = 0, MaxY = 63,
+                MinX = 0, MaxX = 255,
+                MinY = 0, MaxY = 255,
                 MinZ = 0, MaxZ = 15,
             };
 
@@ -65,9 +65,13 @@ namespace FT2232ImageOutput
 
             var imageSource = new IldaImageSource(filepath);
             // var imageSource = new IldaMultipleImageSource(ildafiles);
-            // var imageSource = new LineImageSource(generateMaxValues);
+            // var imageSource = new TestLineImageSource(generateMaxValues);
             // var imageSource = new SolidRectangleImageSource(generateMaxValues);
             // var imageSource = new RandomImageSource(generateMaxValues);
+            // var imageSource = new SpruceImageSource(targetMaxValues);
+            // var imageSource = new MeandreImageSource(targetMaxValues);
+            // var imageSource = new TwoPointsImageSource(targetMaxValues, 1024);
+
 
             // var imageSource = new MatrixBootstrap().CrateMatrix(
             //     filepath,
@@ -97,13 +101,17 @@ namespace FT2232ImageOutput
             // ); ;
 
             var frameProcessors = new List<IFrameProcessor>() {
-                                
+
                 new ScaleMaxValuesFrameProcessor(imageSource.MaxValues, targetMaxValues),
 
                 new MonochromeFrameProcessor(MonochromeFrameProcessorSourceColor.Green),
 
-                new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ), 
+                new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ),
+
+                // new RotateFrameProcessor(targetMaxValues, 0, null, 0.1f, 25),
                 
+                // new RotateFrameProcessor(targetMaxValues, 90, null, 0.1f, 0),
+
                 new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
 
                 // new SineWaveFrameProcessor(TimeSpan.FromMilliseconds(10), 150, 3.5f, .5f, targetMaxValues),
@@ -113,6 +121,7 @@ namespace FT2232ImageOutput
             };
 
             var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4);
+            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4);
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8);
 
             var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointBitMapper);
