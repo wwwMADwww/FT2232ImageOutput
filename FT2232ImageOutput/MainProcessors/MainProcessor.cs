@@ -130,6 +130,7 @@ namespace FT2232ImageOutput.MainProcessors
             {
                 Console.WriteLine("Exception in FrameReadAndProcess:");
                 Console.WriteLine(e.ToString());
+                throw;
             }
 
 
@@ -162,6 +163,7 @@ namespace FT2232ImageOutput.MainProcessors
             {
                 Console.WriteLine("Exception in FrameOutput:");
                 Console.WriteLine(e.ToString());
+                throw;
             }
 
         }

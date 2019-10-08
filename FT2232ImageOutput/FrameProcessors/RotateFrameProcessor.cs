@@ -28,8 +28,8 @@ namespace FT2232ImageOutput.FrameProcessors
             {
                 _center = new Point()
                 {
-                    X = (_maxValues.MaxX - _maxValues.MinX) / 2,
-                    Y = (_maxValues.MaxY - _maxValues.MinY) / 2,
+                    X = _maxValues.CenterX,
+                    Y = _maxValues.CenterY,
                 };
             }
 
@@ -59,7 +59,7 @@ namespace FT2232ImageOutput.FrameProcessors
             }
 
 
-            res.Points = GetPoints(frame.Points); // points;
+            res.Points = GetPoints(frame.Points);
         
             return res;
         
@@ -75,18 +75,9 @@ namespace FT2232ImageOutput.FrameProcessors
                 if ((_maxValues.MinX <= rotated.X && rotated.X <= _maxValues.MaxX) &&
                     (_maxValues.MinY <= rotated.Y && rotated.Y <= _maxValues.MaxY))
                 {
-                    var newPoint = new ImagePoint()
-                    {
-                        X = rotated.X,
-                        Y = rotated.Y,
-                        Z = point.Z,
-
-                        R = point.R,
-                        G = point.G,
-                        B = point.B,
-
-                        Blanking = point.Blanking
-                    };
+                    var newPoint = point.Clone();
+                    newPoint.X = rotated.X;
+                    newPoint.Y = rotated.Y;
 
                     yield return newPoint;
                 }

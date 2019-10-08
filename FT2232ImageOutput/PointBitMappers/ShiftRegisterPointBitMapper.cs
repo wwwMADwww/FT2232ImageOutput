@@ -61,40 +61,17 @@ namespace FT2232ImageOutput.PointBitMappers
 
             byte pinShift = 6; // shift clock (SHCP or SRCLK)
             byte pinStore = 7; // store clock (STCP or RCLK)
+                       
+            var values = new byte[3];
 
-            var buf = new byte[2 * 8];
-            int bufpos = 0;
-
-            byte x, y, z;
-
-            x = (byte)(point.X & 0xFF);
-            y = (byte)(point.Y & 0xFF);
-            z = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
+            values[pinDataX] = (byte)(point.X & 0xFF);
+            values[pinDataY] = (byte)(point.Y & 0xFF);
+            values[pinDataZ] = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
 
 
-            for (int bit = 7; bit >= 0; bit--)
-            {
-                byte data = 0;
+            var bytes = GetDataAndClockBytes(values, pinShift, pinStore);
 
-                data |= GetBit(x, bit, pinDataX);
-                data |= GetBit(y, bit, pinDataY);
-                data |= GetBit(z, bit, pinDataZ);
-                // Shift and Store clock pins goes LOW
-
-                // write data to buffer
-                buf[bufpos] = data;
-                bufpos++;
-
-                // after each data bit transmission Shift pin goes HIGH
-                buf[bufpos] = (byte)(1 << pinShift);
-                bufpos++;
-
-            }
-
-            // after each 8th data bit transmission Store pin goes HIGH
-            buf[0] |= (byte)(1 << pinStore);
-
-            return buf;
+            return bytes;
         }
 
 
@@ -110,46 +87,21 @@ namespace FT2232ImageOutput.PointBitMappers
 
             byte pinShift = 6; // shift clock (SHCP or SRCLK)
             byte pinStore = 7; // store clock (STCP or RCLK)
+            
+            var values = new byte[3];
 
-            var buf = new byte[2 * 8];
-            int bufpos = 0;
-
-            byte x1, x2, y1, y2, z1;
-
-            x1 = (byte)(point.X & 0xFF);
-            x2 = (byte)((point.X >> 8) & 0b11);
-            y1 = (byte)(point.Y & 0xFF);
-            y2 = (byte)((point.Y >> 8) & 0b11);
-            z1 = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
+            values[pinDataX1] = (byte)(point.X & 0xFF);
+            values[pinDataY1] = (byte)(point.Y & 0xFF);
+            values[pinDataX1Y2Z] = (byte)(
+                ((point.X >> 8) & 0b11) |
+                (((point.Y >> 8) & 0b11) << 2) |
+                ((point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111)) << 4)
+                );
 
 
-            var regX1 = x1;
-            var regY1 = y1;
-            var regX2Y2Z = (byte) (x2 | (y2 << 2) | (z1 << 4));
+            var bytes = GetDataAndClockBytes(values, pinShift, pinStore);
 
-            for (int bit = 7; bit >= 0; bit--)
-            {
-                byte data = 0;
-
-                data |= GetBit(regX1, bit, pinDataX1);
-                data |= GetBit(regY1, bit, pinDataY1);
-                data |= GetBit(regX2Y2Z, bit, pinDataX1Y2Z);
-                // Shift and Store clock pins goes LOW
-
-                // write data to buffer
-                buf[bufpos] = data;
-                bufpos++;
-
-                // after each data bit transmission Shift pin goes HIGH
-                buf[bufpos] = (byte)(buf[bufpos-1] | (1 << pinShift));
-                bufpos++;
-
-            }
-
-            // after each 8th data bit transmission Store pin goes HIGH
-            buf[0] |= (byte) (1 << pinStore);
-
-            return buf;
+            return bytes;
         }
         
         
@@ -166,45 +118,20 @@ namespace FT2232ImageOutput.PointBitMappers
             byte pinShift = 6; // shift clock (SHCP or SRCLK)
             byte pinStore = 7; // store clock (STCP or RCLK)
 
-            var buf = new byte[2 * 8];
-            int bufpos = 0;
+            var values = new byte[3];
 
-            byte x1, x2, y1, y2, z1;
+            values[pinDataX1] = (byte)((point.X >> 2) & 0xFF);
+            values[pinDataY1] = (byte)((point.Y >> 2) & 0xFF);
+            values[pinDataX1Y2Z] = (byte) (
+                (point.X & 0b11) | 
+                ((point.Y & 0b11) << 2) | 
+                ((point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111)) << 4)
+                );
 
-            x1 = (byte)((point.X >> 2) & 0xFF);
-            x2 = (byte)(point.X & 0b11);
-            y1 = (byte)((point.Y >> 2) & 0xFF);
-            y2 = (byte)(point.Y & 0b11);
-            z1 = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
 
+            var bytes = GetDataAndClockBytes(values, pinShift, pinStore);
 
-            var regX1 = x1;
-            var regY1 = y1;
-            var regX2Y2Z = (byte) (x2 | (y2 << 2) | (z1 << 4));
-
-            for (int bit = 7; bit >= 0; bit--)
-            {
-                byte data = 0;
-
-                data |= GetBit(regX1, bit, pinDataX1);
-                data |= GetBit(regY1, bit, pinDataY1);
-                data |= GetBit(regX2Y2Z, bit, pinDataX1Y2Z);
-                // Shift and Store clock pins goes LOW
-
-                // write data to buffer
-                buf[bufpos] = data;
-                bufpos++;
-
-                // after each data bit transmission Shift pin goes HIGH
-                buf[bufpos] = (byte)(buf[bufpos-1] | (1 << pinShift));
-                bufpos++;
-
-            }
-
-            // after each 8th data bit transmission Store pin goes HIGH
-            buf[0] |= (byte) (1 << pinStore);
-
-            return buf;
+            return bytes;
         }
 
 
@@ -222,48 +149,19 @@ namespace FT2232ImageOutput.PointBitMappers
 
             byte pinShift = 6; // shift clock (SHCP or SRCLK)
             byte pinStore = 7; // store clock (STCP or RCLK)
-
-            var buf = new byte[2 * 4];
-            int bufpos = 0;
-
-            byte x1, x2, y1, y2, x3y3, z1;
-
-            x1 = (byte)(point.X & 0b1111);
-            x2 = (byte)((point.X >> 4) & 0b1111);
-            y1 = (byte)(point.Y & 0b1111);
-            y2 = (byte)((point.Y >> 4) & 0b1111);
-            x3y3 = (byte)(((point.X >> 8) & 0b11) | (((point.Y >> 8) & 0b11) << 2));
-            z1 = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
             
-            for (int bit = 3; bit >= 0; bit--)
-            {
-                byte data = 0;
+            var values = new byte[6];
 
-                data |= GetBit(x1, bit, pinDataX1);
-                data |= GetBit(x2, bit, pinDataX2);
+            values[pinDataX1] = (byte)(point.X & 0b1111);
+            values[pinDataX2] = (byte)((point.X >> 4) & 0b1111);
+            values[pinDataY1] = (byte)(point.Y & 0b1111);
+            values[pinDataY2] = (byte)((point.Y >> 4) & 0b1111);
+            values[pinDataX3Y3] = (byte)(((point.X >> 8) & 0b11) | (((point.Y >> 8) & 0b11) << 2));
+            values[pinDataZ] = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
+            
+            var bytes = GetDataAndClockBytes(values, pinShift, pinStore);
 
-                data |= GetBit(y1, bit, pinDataY1);
-                data |= GetBit(y2, bit, pinDataY2);
-
-                data |= GetBit(x3y3, bit, pinDataX3Y3);
-
-                data |= GetBit(z1, bit, pinDataZ);
-                // Shift and Store clock pins goes LOW
-
-                // write data to buffer
-                buf[bufpos] = data;
-                bufpos++;
-
-                // after each data bit transmission Shift pin goes HIGH
-                buf[bufpos] = (byte)(buf[bufpos - 1] | (1 << pinShift));
-                bufpos++;
-
-            }
-
-            // after each 4th data bit transmission Store pin goes HIGH
-            buf[0] |= (byte)(1 << pinStore);
-
-            return buf;
+            return bytes;
         }
 
 
@@ -281,27 +179,35 @@ namespace FT2232ImageOutput.PointBitMappers
             byte pinShift = 6; // shift clock (SHCP or SRCLK)
             byte pinStore = 7; // store clock (STCP or RCLK)
 
+            var values = new byte[5];
+            
+            values[pinDataX1] = (byte)(point.X & 0xFF);
+            values[pinDataX2] = (byte)((point.X >> 8) & 0xFF);
+            values[pinDataY1] = (byte)(point.Y & 0xFF);
+            values[pinDataY2] = (byte)((point.Y >> 8) & 0xFF);
+            values[pinDataZ ] = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
+
+            var bytes = GetDataAndClockBytes(values, pinShift, pinStore);
+
+            return bytes;
+
+        }
+
+
+        protected byte[] GetDataAndClockBytes(byte[] values, int pinShift, int pinStore)
+        {
             var buf = new byte[2 * 8];
             int bufpos = 0;
-
-            byte x1, x2, y1, y2, z1;
-
-            x1 = (byte)(point.X & 0xFF);
-            x2 = (byte)((point.X >> 8) & 0xFF);
-            y1 = (byte)(point.Y & 0xFF);
-            y2 = (byte)((point.Y >> 8) & 0xFF);
-            z1 = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
-
+            
             for (int bit = 7; bit >= 0; bit--)
             {
                 byte data = 0;
 
-                data |= GetBit(x1, bit, pinDataX1);
-                data |= GetBit(x2, bit, pinDataX2);
-                data |= GetBit(y1, bit, pinDataY1);
-                data |= GetBit(y2, bit, pinDataY2);
-                data |= GetBit(z1, bit, pinDataZ);
-                // Shift and Store clock pins goes LOW
+                for (int pin = 0; pin < values.Length; pin++)
+                {
+                    data |= GetBit(values[pin], bit, pin);
+                    // Shift and Store clock pins goes LOW
+                }
 
                 // write data to buffer
                 buf[bufpos] = data;
@@ -317,9 +223,7 @@ namespace FT2232ImageOutput.PointBitMappers
             buf[0] |= (byte)(1 << pinStore);
 
             return buf;
-
         }
-
 
 
         byte GetBit(byte value, int bit, int pin) => (byte)((((value >> bit) & 1) << pin) & (1 << pin));

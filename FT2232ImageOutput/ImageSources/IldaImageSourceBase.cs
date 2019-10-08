@@ -37,8 +37,7 @@ namespace FT2232ImageOutput.ImageSources
 
             var frames = new List<ImageFrame>();
 
-            // TODO: add default palette from ILDA datasheet (or whatever the "ILDA test pattern" wants to use without predefining palette in file, i don't know)
-            List<RecordColourPalette> palette = new List<RecordColourPalette>();
+            List<RecordColourPalette> palette = GetDefaultPalette().ToList();
 
             using (var fs = new FileStream(filepath, FileMode.Open, FileAccess.Read))
             {
@@ -104,8 +103,8 @@ namespace FT2232ImageOutput.ImageSources
                 case FormatCode.Format2DIndexedColour:
                     {
                         var r = (Record2DIndexed)ildaRecord;
-                        // TODO: proper index checking
-                        var c = r.ColourIndex < palette.Count() ? palette[r.ColourIndex] : new RecordColourPalette(0, 0, 0);
+
+                        var c = palette[r.ColourIndex];
 
                         res.X = r.X;
                         res.Y = r.Y;
@@ -136,8 +135,8 @@ namespace FT2232ImageOutput.ImageSources
                 case FormatCode.Format3DIndexedColour:
                     {
                         var r = (Record3DIndexed)ildaRecord;
-                        // TODO: proper index checking
-                        var c = r.ColourIndex < palette.Count() ? palette[r.ColourIndex] : new RecordColourPalette(0, 0, 0);
+
+                        var c = palette[r.ColourIndex];
 
                         res.X = r.X;
                         res.Y = r.Y;
@@ -189,6 +188,87 @@ namespace FT2232ImageOutput.ImageSources
                 default: throw new ArgumentException($"Unknown FormatCode '{formatCode}'", nameof(formatCode));
             }
         }
+
+        #region GetDefaultPalette
+
+        protected IEnumerable<RecordColourPalette> GetDefaultPalette()
+        {
+            // ILDA_IDTF14_rev011.pdf 
+            // Appendix
+            // A.  Suggested Default Color Palette
+
+            // RGB codes copied from:
+            // https://github.com/awesomebytes/src/blob/master/LaserBoy_palette_set.cpp#L185
+
+            return new RecordColourPalette[]
+            {
+                new RecordColourPalette(0xff, 0x00, 0x00),
+                new RecordColourPalette(0xff, 0x10, 0x00),
+                new RecordColourPalette(0xff, 0x20, 0x00),
+                new RecordColourPalette(0xff, 0x30, 0x00),
+                new RecordColourPalette(0xff, 0x40, 0x00),
+                new RecordColourPalette(0xff, 0x50, 0x00),
+                new RecordColourPalette(0xff, 0x60, 0x00),
+                new RecordColourPalette(0xff, 0x70, 0x00),
+                new RecordColourPalette(0xff, 0x80, 0x00),
+                new RecordColourPalette(0xff, 0x90, 0x00),
+                new RecordColourPalette(0xff, 0xa0, 0x00),
+                new RecordColourPalette(0xff, 0xb0, 0x00),
+                new RecordColourPalette(0xff, 0xc0, 0x00),
+                new RecordColourPalette(0xff, 0xd0, 0x00),
+                new RecordColourPalette(0xff, 0xe0, 0x00),
+                new RecordColourPalette(0xff, 0xf0, 0x00),
+                new RecordColourPalette(0xff, 0xff, 0x00),
+                new RecordColourPalette(0xe0, 0xff, 0x00),
+                new RecordColourPalette(0xc0, 0xff, 0x00),
+                new RecordColourPalette(0xa0, 0xff, 0x00),
+                new RecordColourPalette(0x80, 0xff, 0x00),
+                new RecordColourPalette(0x60, 0xff, 0x00),
+                new RecordColourPalette(0x40, 0xff, 0x00),
+                new RecordColourPalette(0x20, 0xff, 0x00),
+                new RecordColourPalette(0x00, 0xff, 0x00),
+                new RecordColourPalette(0x00, 0xff, 0x20),
+                new RecordColourPalette(0x00, 0xff, 0x40),
+                new RecordColourPalette(0x00, 0xff, 0x60),
+                new RecordColourPalette(0x00, 0xff, 0x80),
+                new RecordColourPalette(0x00, 0xff, 0xa0),
+                new RecordColourPalette(0x00, 0xff, 0xc0),
+                new RecordColourPalette(0x00, 0xff, 0xe0),
+                new RecordColourPalette(0x00, 0x82, 0xff),
+                new RecordColourPalette(0x00, 0x72, 0xff),
+                new RecordColourPalette(0x00, 0x68, 0xff),
+                new RecordColourPalette(0x0a, 0x60, 0xff),
+                new RecordColourPalette(0x00, 0x52, 0xff),
+                new RecordColourPalette(0x00, 0x4a, 0xff),
+                new RecordColourPalette(0x00, 0x40, 0xff),
+                new RecordColourPalette(0x00, 0x20, 0xff),
+                new RecordColourPalette(0x00, 0x00, 0xff),
+                new RecordColourPalette(0x20, 0x00, 0xff),
+                new RecordColourPalette(0x40, 0x00, 0xff),
+                new RecordColourPalette(0x60, 0x00, 0xff),
+                new RecordColourPalette(0x80, 0x00, 0xff),
+                new RecordColourPalette(0xa0, 0x00, 0xff),
+                new RecordColourPalette(0xe0, 0x00, 0xff),
+                new RecordColourPalette(0xff, 0x00, 0xff),
+                new RecordColourPalette(0xff, 0x20, 0xff),
+                new RecordColourPalette(0xff, 0x40, 0xff),
+                new RecordColourPalette(0xff, 0x60, 0xff),
+                new RecordColourPalette(0xff, 0x80, 0xff),
+                new RecordColourPalette(0xff, 0xa0, 0xff),
+                new RecordColourPalette(0xff, 0xc0, 0xff),
+                new RecordColourPalette(0xff, 0xe0, 0xff),
+                new RecordColourPalette(0xff, 0xff, 0xff),
+                new RecordColourPalette(0xff, 0xe0, 0xe0),
+                new RecordColourPalette(0xff, 0xff, 0xff),
+                new RecordColourPalette(0xff, 0xa0, 0xa0),
+                new RecordColourPalette(0xff, 0x80, 0x80),
+                new RecordColourPalette(0xff, 0x60, 0x60),
+                new RecordColourPalette(0xff, 0x40, 0x40),
+                new RecordColourPalette(0xff, 0x20, 0x20)
+            };
+        }
+
+        #endregion GetDefaultPalette
 
     }
 }

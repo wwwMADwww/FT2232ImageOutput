@@ -28,5 +28,23 @@ namespace FT2232ImageOutput
         public int B { get; set; }
 
         public bool Blanking { get; set; }
+
+
+
+        public ImagePoint Clone()
+        {
+            return new ImagePoint()
+            {
+                X = X,
+                Y = Y,
+                Z = Z,
+
+                R = R,
+                G = G,
+                B = B,
+
+                Blanking = Blanking
+            };
+        }
     }
 }

@@ -38,10 +38,10 @@ namespace FT2232ImageOutput.FrameProcessors
 
             foreach (var point in originalPoints)
             {
-                yield return Copy(point);
+                yield return point.Clone();
             }
 
-            var p = Copy(originalPoints.Last());
+            var p = originalPoints.Last().Clone();
             p.Blanking = true;
 
             yield return p;
@@ -49,21 +49,6 @@ namespace FT2232ImageOutput.FrameProcessors
             yield break;
         }
 
-        ImagePoint Copy(ImagePoint point)
-        {
-            return new ImagePoint()
-            {
-                X = point.X,
-                Y = point.Y,
-                Z = point.Z,
-
-                R = point.R,
-                G = point.G,
-                B = point.B,
-
-                Blanking = point.Blanking
-            };
-        }
 
     }
 

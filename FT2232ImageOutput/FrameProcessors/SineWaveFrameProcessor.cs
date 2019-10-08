@@ -78,18 +78,9 @@ namespace FT2232ImageOutput.FrameProcessors
                     blanking = true;
                 }
 
-                var newPoint = new ImagePoint()
-                {
-                    X = newX,
-                    Y = point.Y,
-                    Z = point.Z,
-
-                    R = point.R,
-                    G = point.G,
-                    B = point.B,
-
-                    Blanking = blanking
-                };
+                var newPoint = point.Clone();
+                newPoint.X = newX;
+                newPoint.Blanking = blanking;
 
                 yield return newPoint;
                 

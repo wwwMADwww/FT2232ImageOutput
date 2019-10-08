@@ -32,6 +32,15 @@ namespace FT2232ImageOutput
         public int MaxZ   { get; set; }
 
         public int MaxRGB { get; set; }
+
+
+        public int Width  => MaxX - MinX;
+        public int Height => MaxY - MinY;
+
+
+        public int CenterX => MinX + (Width / 2);
+        public int CenterY => MinY + (Height / 2);
+
     }
 
 }

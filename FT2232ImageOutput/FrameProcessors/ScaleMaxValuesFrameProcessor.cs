@@ -23,7 +23,6 @@ namespace FT2232ImageOutput.FrameProcessors
             var res = new ImageFrame();
             res.Duration = frame.Duration;
             res.Number = frame.Number;
-            // var points = new List<ImagePoint>(frame.Points.Count());
 
             if (!frame.Points.Any())
             {
@@ -55,33 +54,12 @@ namespace FT2232ImageOutput.FrameProcessors
                     Blanking = point.Blanking
                 };
 
-                // points.Add(newPoint);
                 yield return newPoint;
             }
 
             yield break;
         }
-
-        // public ImageFrame Process(ImageFrame frame)
-        // {
-        //     foreach (var point in frame.Points)
-        //     {
-        //         point.X = ConvertRange(_maxValues.MinX, _maxValues.MaxX, _targetMaxValues.MinX, _targetMaxValues.MaxX, point.X);
-        //         point.Y = ConvertRange(_maxValues.MinY, _maxValues.MaxY, _targetMaxValues.MinY, _targetMaxValues.MaxY, point.Y);
-        //         point.Z = ConvertRange(_maxValues.MinZ, _maxValues.MaxZ, _targetMaxValues.MinZ, _targetMaxValues.MaxZ, point.Z);
-        // 
-        //         point.R = ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.R);
-        //         point.G = ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.G);
-        //         point.B = ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.B);
-        // 
-        //         point.Blanking = point.Blanking;
-        //     }
-        // 
-        //     return frame;
-        // 
-        // }
-
-
+               
 
         // https://stackoverflow.com/questions/4229662/convert-numbers-within-a-range-to-numbers-within-another-range
         int ConvertRange(

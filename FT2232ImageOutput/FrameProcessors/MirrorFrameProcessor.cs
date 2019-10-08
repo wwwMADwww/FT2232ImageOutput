@@ -31,7 +31,7 @@ namespace FT2232ImageOutput.FrameProcessors
             }
 
 
-            res.Points = GetPoints(frame.Points); // points;
+            res.Points = GetPoints(frame.Points);
         
             return res;
         
@@ -41,24 +41,13 @@ namespace FT2232ImageOutput.FrameProcessors
         {
             foreach (var point in originalPoints)
             {
-                var newPoint = new ImagePoint()
-                {
-                    X = _mode.HasFlag(MirrorFrameProcessorMode.Horizontal) 
-                        ? _maxValues.MaxX - (point.X - _maxValues.MinX)
-                        : point.X,
+                var newPoint = point.Clone();
 
-                    Y = _mode.HasFlag(MirrorFrameProcessorMode.Vertical)
-                        ? _maxValues.MaxY - (point.Y - _maxValues.MinY)
-                        : point.Y,
+                if (_mode.HasFlag(MirrorFrameProcessorMode.Horizontal))
+                    newPoint.X = _maxValues.MaxX - (point.X - _maxValues.MinX);
 
-                    Z = point.Z,
-
-                    R = point.R,
-                    G = point.G,
-                    B = point.B,
-
-                    Blanking = point.Blanking
-                };
+                if (_mode.HasFlag(MirrorFrameProcessorMode.Vertical))
+                    newPoint.Y = _maxValues.MaxY - (point.Y - _maxValues.MinY);
 
                 yield return newPoint;
             }

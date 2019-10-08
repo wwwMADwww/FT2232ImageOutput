@@ -23,7 +23,6 @@ namespace FT2232ImageOutput.FrameProcessors
             var res = new ImageFrame();
             res.Duration = frame.Duration;
             res.Number = frame.Number;
-            // var points = new List<ImagePoint>(frame.Points.Count());
 
             if (!frame.Points.Any())
             {
@@ -47,14 +46,7 @@ namespace FT2232ImageOutput.FrameProcessors
                 // almost fisrt from google
                 int gray = (byte)(.21 * point.R + .71 * point.G + .071 * point.B);
 
-                var newPoint = new ImagePoint()
-                {
-                    X = point.X,
-                    Y = point.Y,
-                    Z = point.Z,
-
-                    Blanking = point.Blanking
-                };
+                var newPoint = point.Clone();
 
                 switch (_mapMode)
                 {
