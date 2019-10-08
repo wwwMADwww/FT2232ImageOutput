@@ -119,7 +119,7 @@ namespace FT2232ImageOutput
                 }
             }
 
-            foreach (var trailer in _trailers.OrderByDescending(t => t.HeadY))
+            foreach (var trailer in _trailers.OrderBy(t => t.HeadY))
             {
                 int chainPos = 0;
                 foreach (var chain in trailer.Chains)

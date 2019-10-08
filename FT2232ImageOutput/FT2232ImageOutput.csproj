@@ -59,6 +59,7 @@
     <Compile Include="IldaImageSourceBase.cs" />
     <Compile Include="IMainProcessor.cs" />
     <Compile Include="RotateFrameProcessor.cs" />
+    <Compile Include="MirrorFrameProcessor.cs" />
     <Compile Include="SineWaveFrameProcessor.cs" />
     <Compile Include="FT2232HardwareOutput.cs" />
     <Compile Include="DuplicateReduceFrameProcessor.cs" />
