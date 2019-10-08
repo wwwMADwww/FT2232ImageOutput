@@ -7,6 +7,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
+using FT2232ImageOutput.FrameProcessors;
+using FT2232ImageOutput.HardwareOutput;
+using FT2232ImageOutput.ImageSources;
+using FT2232ImageOutput.MainProcessors;
+using FT2232ImageOutput.PointBitMappers;
 
 namespace FT2232ImageOutput
 {

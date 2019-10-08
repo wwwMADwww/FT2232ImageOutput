@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FT2232ImageOutput.FrameProcessors;
+using FT2232ImageOutput.ImageSources;
 
 namespace FT2232ImageOutput
 {

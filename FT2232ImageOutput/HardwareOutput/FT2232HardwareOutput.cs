@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FT2232ImageOutput
+namespace FT2232ImageOutput.HardwareOutput
 {
     
     public class FT2232HardwareOutput : IHardwareOutput
@@ -81,19 +81,21 @@ namespace FT2232ImageOutput
 
             FTDI.FT_STATUS status = FTDI.FT_STATUS.FT_OTHER_ERROR;
 
-            for (int i = 0; i < 60; i++)
-            {
-                status = res.OpenBySerialNumber(channelName);
-                if (
-                    status != FTD2XX_NET.FTDI.FT_STATUS.FT_DEVICE_NOT_FOUND &&
-                    status != FTD2XX_NET.FTDI.FT_STATUS.FT_DEVICE_NOT_OPENED
-                    )
-                    break;
-                Thread.Sleep(1000);
-                res = new FTDI();
-                FTDI.FT_DEVICE_INFO_NODE[] list = new FTDI.FT_DEVICE_INFO_NODE[200];
-                status = res.GetDeviceList(list);
-            }
+            status = res.OpenBySerialNumber(channelName);
+
+            // for (int i = 0; i < 60; i++)
+            // {
+            //     status = res.OpenBySerialNumber(channelName);
+            //     if (
+            //         status != FTD2XX_NET.FTDI.FT_STATUS.FT_DEVICE_NOT_FOUND &&
+            //         status != FTD2XX_NET.FTDI.FT_STATUS.FT_DEVICE_NOT_OPENED
+            //         )
+            //         break;
+            //     Thread.Sleep(1000);
+            //     res = new FTDI();
+            //     FTDI.FT_DEVICE_INFO_NODE[] list = new FTDI.FT_DEVICE_INFO_NODE[200];
+            //     status = res.GetDeviceList(list);
+            // }
             Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
 
             status = res.SetBaudRate(baudRate);

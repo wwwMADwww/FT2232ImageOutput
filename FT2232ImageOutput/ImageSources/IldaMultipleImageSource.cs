@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FT2232ImageOutput
+namespace FT2232ImageOutput.ImageSources
 {
     public class IldaMultipleImageSource : IldaImageSourceBase
     {

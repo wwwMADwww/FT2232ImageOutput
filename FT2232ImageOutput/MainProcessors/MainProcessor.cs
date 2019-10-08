@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FT2232ImageOutput
+namespace FT2232ImageOutput.MainProcessors
 {
     public class MainProcessor: IMainProcessor
     {
