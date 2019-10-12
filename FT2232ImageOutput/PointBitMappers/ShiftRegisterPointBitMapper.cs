@@ -69,7 +69,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataZ] = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
 
 
-            var bytes = GetDataAndClockBytes(values, pinShift, pinStore);
+            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore);
 
             return bytes;
         }
@@ -99,7 +99,7 @@ namespace FT2232ImageOutput.PointBitMappers
                 );
 
 
-            var bytes = GetDataAndClockBytes(values, pinShift, pinStore);
+            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore);
 
             return bytes;
         }
@@ -129,7 +129,7 @@ namespace FT2232ImageOutput.PointBitMappers
                 );
 
 
-            var bytes = GetDataAndClockBytes(values, pinShift, pinStore);
+            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore);
 
             return bytes;
         }
@@ -159,7 +159,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX3Y3] = (byte)(((point.X >> 8) & 0b11) | (((point.Y >> 8) & 0b11) << 2));
             values[pinDataZ] = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
             
-            var bytes = GetDataAndClockBytes(values, pinShift, pinStore);
+            var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore);
 
             return bytes;
         }
@@ -187,19 +187,19 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataY2] = (byte)((point.Y >> 8) & 0xFF);
             values[pinDataZ ] = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
 
-            var bytes = GetDataAndClockBytes(values, pinShift, pinStore);
+            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore);
 
             return bytes;
 
         }
 
 
-        protected byte[] GetDataAndClockBytes(byte[] values, int pinShift, int pinStore)
+        protected byte[] GetDataAndClockBytes(byte[] values, int bitsCount, int pinShift, int pinStore)
         {
-            var buf = new byte[2 * 8];
+            var buf = new byte[2 * bitsCount];
             int bufpos = 0;
             
-            for (int bit = 7; bit >= 0; bit--)
+            for (int bit = bitsCount-1; bit >= 0; bit--)
             {
                 byte data = 0;
 
