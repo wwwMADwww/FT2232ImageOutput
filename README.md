@@ -23,7 +23,7 @@ Schematic diagrams for all modes available at [FT2232ImageOutput/diagrams/](FT22
  - ~~Increase DAC resolution to 10-12 bits~~
  - ~~Add DAC to Z channel to using it as blanking and b/w color output~~
  - Migrating to net.core
-
+ - Add GUI
 
 Result on my setup for `lain.ild` file (sample files available at [FT2232ImageOutput/samplefiles/](FT2232ImageOutput/samplefiles/)):
 
