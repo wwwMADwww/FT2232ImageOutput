@@ -119,7 +119,7 @@ namespace FT2232ImageOutput
 
                 new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
 
-                // new SineWaveFrameProcessor(TimeSpan.FromMilliseconds(10), 150, 3.5f, .5f, targetMaxValues),
+                // new DuplicatePointsFrameProcessor(10, 10f),
                 
                 new AddBlankingPointsFrameProcessor()
 
