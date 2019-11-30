@@ -20,6 +20,7 @@ namespace FT2232ImageOutput.PointBitMappers
 
         // 6 registers, 10 bit XY R2R DACs, 4 bit Z R2R DAC
         Mode_Sr8x6_XY10_Z4,
+        Mode_Sr8x6_XY10_Z4_2,
 
         // 5 registers, 16 bit XY R2R DACs, 8 bit Z R2R DAC
         Mode_Sr8x5_XY16_Z8
@@ -42,6 +43,7 @@ namespace FT2232ImageOutput.PointBitMappers
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4: return Mode_Sr8x3_XY10_Z4(point);
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4_2: return Mode_Sr8x3_XY10_Z4_2(point);
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4: return Mode_Sr8x6_XY10_Z4(point);
+                case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2: return Mode_Sr8x6_XY10_Z4_2(point);
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x5_XY16_Z8: return Mode_Sr8x5_XY16_Z8(point);
                 default:
                     throw new ArgumentException($"Unknown mapping mode {_mode}", nameof(_mode));
@@ -69,7 +71,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataZ] = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
 
 
-            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore);
+            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore, false);
 
             return bytes;
         }
@@ -99,7 +101,7 @@ namespace FT2232ImageOutput.PointBitMappers
                 );
 
 
-            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore);
+            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore, false);
 
             return bytes;
         }
@@ -129,7 +131,7 @@ namespace FT2232ImageOutput.PointBitMappers
                 );
 
 
-            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore);
+            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore, false);
 
             return bytes;
         }
@@ -159,7 +161,36 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX3Y3] = (byte)(((point.X >> 8) & 0b11) | (((point.Y >> 8) & 0b11) << 2));
             values[pinDataZ] = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
             
-            var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore);
+            var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore, false);
+
+            return bytes;
+        }
+
+
+        byte[] Mode_Sr8x6_XY10_Z4_2(ImagePoint point)
+        {
+            // TODO: make configurable
+            // see the schematic diagram
+            byte pinDataX1Y1 = 0; // |yyxx----|
+            byte pinDataX2 = 1; // |xxxx----|
+            byte pinDataX3 = 2; // |xxxx----|
+            byte pinDataZ  = 3; // |zzzz----|
+            byte pinDataY2 = 4; // |yyyy----|
+            byte pinDataY3 = 5; // |yyyy----|
+
+            byte pinShift = 6; // shift clock (SHCP or SRCLK)
+            byte pinStore = 7; // store clock (STCP or RCLK)
+
+            var values = new byte[6];
+
+            values[pinDataX1Y1] = (byte) (((point.X & 0b11) << 2) | (point.Y & 0b11));
+            values[pinDataX2] = (byte)((point.X >> 2) & 0b1111);
+            values[pinDataX3] = (byte)((point.X >> 6) & 0b1111);
+            values[pinDataY2] = (byte)((point.Y >> 2) & 0b1111);
+            values[pinDataY3] = (byte)((point.Y >> 6) & 0b1111);
+            values[pinDataZ] = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
+            
+            var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore, false);
 
             return bytes;
         }
@@ -187,14 +218,14 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataY2] = (byte)((point.Y >> 8) & 0xFF);
             values[pinDataZ ] = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
 
-            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore);
+            var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore, false);
 
             return bytes;
 
         }
 
 
-        protected byte[] GetDataAndClockBytes(byte[] values, int bitsCount, int pinShift, int pinStore)
+        protected byte[] GetDataAndClockBytes(byte[] values, int bitsCount, int pinShift, int pinStore, bool resetDataOnClock)
         {
             var buf = new byte[2 * bitsCount];
             int bufpos = 0;
@@ -214,7 +245,7 @@ namespace FT2232ImageOutput.PointBitMappers
                 bufpos++;
 
                 // after each data bit transmission Shift pin goes HIGH
-                buf[bufpos] = (byte)(1 << pinShift);
+                buf[bufpos] = (byte)((1 << pinShift) | (resetDataOnClock ? 0 : data));
                 bufpos++;
 
             }
