@@ -10,9 +10,12 @@ namespace FT2232ImageOutput.ImageSources
 {
     public class TestLineImageSource : IImageSource
     {
-        public TestLineImageSource(ImageMaxValues maxValues)
+        private readonly ImageMaxValues _lineBounds;
+
+        public TestLineImageSource(ImageMaxValues maxValues, ImageMaxValues lineBounds)
         {
             MaxValues = maxValues;
+            _lineBounds = lineBounds;
         }
 
 
@@ -31,19 +34,21 @@ namespace FT2232ImageOutput.ImageSources
 
             var frames = new List<ImageFrame>();
             
-            var points = new List<ImagePoint>(MaxValues.MaxX - MaxValues.MinX);
-            
-            for (int i = MaxValues.MinX; i <= MaxValues.MaxX; i++)
+            var points = new List<ImagePoint>(_lineBounds.MaxX - _lineBounds.MinX);
+
+            var zkoeff = ((_lineBounds.MaxX - _lineBounds.MinX) + 1) / ((_lineBounds.MaxZ - _lineBounds.MinZ) + 1);
+
+            for (int i = _lineBounds.MinX; i <= _lineBounds.MaxX; i++)
             {
                 var point = new ImagePoint()
                 {
                     X = i,
                     Y = i,
-                    Z = MaxValues.MaxX - i,
+                    Z = i / zkoeff, // % (_lineBounds.MaxZ - _lineBounds.MinZ), //_lineBounds.MaxX - i,
 
-                    R = MaxValues.MaxRGB / 2,
-                    G = MaxValues.MaxRGB / 2,
-                    B = MaxValues.MaxRGB / 2,
+                    R = _lineBounds.MaxRGB / 2,
+                    G = _lineBounds.MaxRGB / 2,
+                    B = _lineBounds.MaxRGB / 2,
 
                     Blanking = false
                 };

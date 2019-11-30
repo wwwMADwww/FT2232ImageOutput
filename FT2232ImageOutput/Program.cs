@@ -41,12 +41,15 @@ namespace FT2232ImageOutput
                 MinY = 0, MaxY = 1023,
                 MinZ = 0, MaxZ = 15,
             };
-            
+
+            int genOffsetX = 0; // 32 * 0 - 1;
+            int genOffsetY = 0;
+
             var generateMaxValues = new ImageMaxValues() 
             {
                 MaxRGB = 255,
-                MinX = 0, MaxX = 255,
-                MinY = 0, MaxY = 255,
+                MinX = genOffsetX, MaxX = 1023 + genOffsetX,
+                MinY = genOffsetY, MaxY = 1023 + genOffsetY,
                 MinZ = 0, MaxZ = 15,
             };
 
@@ -70,7 +73,7 @@ namespace FT2232ImageOutput
 
             var imageSource = new IldaImageSource(filepath);
             // var imageSource = new IldaMultipleImageSource(ildafiles);
-            // var imageSource = new TestLineImageSource(generateMaxValues);
+            // var imageSource = new TestLineImageSource(targetMaxValues, generateMaxValues);
             // var imageSource = new SolidRectangleImageSource(generateMaxValues);
             // var imageSource = new RandomImageSource(generateMaxValues);
             // var imageSource = new SpruceImageSource(targetMaxValues);
@@ -132,7 +135,7 @@ namespace FT2232ImageOutput
             var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointBitMapper);
 
 
-            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 24, 1000);
+            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 24, 10000);
 
             mainProcess.Start();
 

@@ -69,9 +69,9 @@ namespace FT2232ImageOutput.ImageSources
         {
             List<ImagePoint> points = new List<ImagePoint>(_config.Rows * _config.Cols);
 
-            for (int row = 0; row < _config.Rows ; row++)
+            for (int col = 0; col < _config.Cols; col++)
             {
-                for (int col = 0; col < _config.Cols; col++)
+                for (int row = 0; row < _config.Rows ; row++)
                 {
                     var chain = _matrix[row, col];
 
@@ -119,7 +119,7 @@ namespace FT2232ImageOutput.ImageSources
                 }
             }
 
-            foreach (var trailer in _trailers.OrderBy(t => t.HeadY))
+            foreach (var trailer in _trailers.OrderByDescending(t => t.HeadY))
             {
                 int chainPos = 0;
                 foreach (var chain in trailer.Chains)
