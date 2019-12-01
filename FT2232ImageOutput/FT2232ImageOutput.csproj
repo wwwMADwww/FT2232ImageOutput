@@ -75,6 +75,7 @@
     <Compile Include="ImageSources\SolidRectangleImageSource.cs" />
     <Compile Include="ImageSources\TestLineImageSource.cs" />
     <Compile Include="FrameProcessors\ScaleMaxValuesFrameProcessor.cs" />
+    <Compile Include="PointBitMappers\Mcp4921PointBitMapper.cs" />
     <Compile Include="PointBitMappers\ShiftRegisterPointBitMapper.cs" />
     <Compile Include="IPointBitMapper.cs" />
     <Compile Include="IFrameProcessor.cs" />

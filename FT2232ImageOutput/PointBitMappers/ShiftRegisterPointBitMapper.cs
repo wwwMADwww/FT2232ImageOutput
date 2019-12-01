@@ -225,6 +225,7 @@ namespace FT2232ImageOutput.PointBitMappers
         }
 
 
+        // TODO: Unify SPI/shift register mapping
         protected byte[] GetDataAndClockBytes(byte[] values, int bitsCount, int pinShift, int pinStore, bool resetDataOnClock)
         {
             var buf = new byte[2 * bitsCount];

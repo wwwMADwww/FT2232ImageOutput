@@ -34,23 +34,40 @@ namespace FT2232ImageOutput
 
             // TODO: config file for building and configure everything
 
+            // var targetMaxValues = new ImageMaxValues() 
+            // {
+            //     MaxRGB = 255,
+            //     MinX = 0, MaxX = 1023,
+            //     MinY = 0, MaxY = 1023,
+            //     MinZ = 0, MaxZ = 15,
+            // };
+
+            
             var targetMaxValues = new ImageMaxValues() 
             {
                 MaxRGB = 255,
-                MinX = 0, MaxX = 1023,
-                MinY = 0, MaxY = 1023,
-                MinZ = 0, MaxZ = 15,
+                MinX = 0, MaxX = 4095,
+                MinY = 0, MaxY = 4095,
+                MinZ = 0, MaxZ = 4095,
             };
 
             int genOffsetX = 0; // 32 * 0 - 1;
             int genOffsetY = 0;
 
+            // var generateMaxValues = new ImageMaxValues() 
+            // {
+            //     MaxRGB = 255,
+            //     MinX = genOffsetX, MaxX = 1023 + genOffsetX,
+            //     MinY = genOffsetY, MaxY = 1023 + genOffsetY,
+            //     MinZ = 0, MaxZ = 15,
+            // };
+            
             var generateMaxValues = new ImageMaxValues() 
             {
                 MaxRGB = 255,
-                MinX = genOffsetX, MaxX = 1023 + genOffsetX,
-                MinY = genOffsetY, MaxY = 1023 + genOffsetY,
-                MinZ = 0, MaxZ = 15,
+                MinX = genOffsetX, MaxX = 4095 + genOffsetX,
+                MinY = genOffsetY, MaxY = 4095 + genOffsetY,
+                MinZ = 0, MaxZ = 4095,
             };
 
             // var generateMaxValues = new ImageMaxValues() 
@@ -123,14 +140,16 @@ namespace FT2232ImageOutput
                 new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
 
                 // new DuplicatePointsFrameProcessor(10, 10f),
-                
+
                 new AddBlankingPointsFrameProcessor()
 
             };
 
-            var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4);
-            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4);
+            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4);
+            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2);
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8);
+
+            var pointBitMapper = new Mcp4921PointBitMapper(true);
 
             var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointBitMapper);
 
