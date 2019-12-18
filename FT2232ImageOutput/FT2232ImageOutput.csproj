@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="CommandLineParams.cs" />
     <Compile Include="FrameProcessors\DuplicatePointsFrameProcessor.cs" />
+    <Compile Include="FrameProcessors\SliceGlitchFrameProcessor.cs" />
     <Compile Include="MatrixBootstrap.cs" />
     <Compile Include="ImageSources\MatrixImageSource.cs" />
     <Compile Include="FrameProcessors\MonochromeFrameProcessor.cs" />

@@ -143,6 +143,18 @@ namespace FT2232ImageOutput
 
                 new AddBlankingPointsFrameProcessor()
 
+
+                new SliceGlitchFrameProcessor(targetMaxValues, new SliceGlitchFrameProcessorSettings(){
+                    ShiftMin = -50,
+                    ShiftMax = 50,
+                    SliceCountMin = 2,
+                    SliceCountMax = 10,
+                    SliceHeightMin = 22,
+                    SliceHeightMax = 320,
+                    UpdateIntervalMin = TimeSpan.FromMilliseconds(30),
+                    UpdateIntervalMax = TimeSpan.FromMilliseconds(100)
+                })
+
             };
 
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4);
