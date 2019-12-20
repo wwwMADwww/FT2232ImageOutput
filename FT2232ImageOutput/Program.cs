@@ -145,12 +145,16 @@ namespace FT2232ImageOutput
 
 
                 new SliceGlitchFrameProcessor(targetMaxValues, new SliceGlitchFrameProcessorSettings(){
-                    ShiftMin = -50,
-                    ShiftMax = 50,
-                    SliceCountMin = 2,
+                    LoopFrame = true,
+                    DriftProbability = 0.2f,
+                    DriftMin = 0.2f,
+                    DriftMax = 0.4f,
+                    ShiftMin = -0.1f,
+                    ShiftMax = 0.1f,
+                    SliceCountMin = 1,
                     SliceCountMax = 10,
-                    SliceHeightMin = 22,
-                    SliceHeightMax = 320,
+                    SliceHeightMin = 0.05f,
+                    SliceHeightMax = 0.40f,
                     UpdateIntervalMin = TimeSpan.FromMilliseconds(30),
                     UpdateIntervalMax = TimeSpan.FromMilliseconds(100)
                 })
