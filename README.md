@@ -28,3 +28,5 @@ Schematic diagrams for all modes available at [FT2232ImageOutput/diagrams/](FT22
 Result on my setup for `lain.ild` file (sample files available at [FT2232ImageOutput/samplefiles/](FT2232ImageOutput/samplefiles/)):
 
 ![lain](/FT2232ImageOutput/samplefiles/lain.png?raw=true "lain")
+
+More pictires can be found on [imgur](https://imgur.com/a/7fsGcv6).
