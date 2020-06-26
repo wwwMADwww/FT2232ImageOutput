@@ -34,22 +34,22 @@ namespace FT2232ImageOutput
 
             // TODO: config file for building and configure everything
 
-            // var targetMaxValues = new ImageMaxValues() 
-            // {
-            //     MaxRGB = 255,
-            //     MinX = 0, MaxX = 1023,
-            //     MinY = 0, MaxY = 1023,
-            //     MinZ = 0, MaxZ = 15,
-            // };
-
-            
             var targetMaxValues = new ImageMaxValues() 
             {
                 MaxRGB = 255,
-                MinX = 0, MaxX = 4095,
-                MinY = 0, MaxY = 4095,
-                MinZ = 0, MaxZ = 4095,
+                MinX = 0, MaxX = 1023,
+                MinY = 0, MaxY = 1023,
+                MinZ = 0, MaxZ = 15,
             };
+
+            
+            // var targetMaxValues = new ImageMaxValues() 
+            // {
+            //     MaxRGB = 255,
+            //     MinX = 0, MaxX = 4095,
+            //     MinY = 0, MaxY = 4095,
+            //     MinZ = 0, MaxZ = 4095,
+            // };
 
             int genOffsetX = 0; // 32 * 0 - 1;
             int genOffsetY = 0;
@@ -62,13 +62,13 @@ namespace FT2232ImageOutput
             //     MinZ = 0, MaxZ = 15,
             // };
             
-            var generateMaxValues = new ImageMaxValues() 
-            {
-                MaxRGB = 255,
-                MinX = genOffsetX, MaxX = 4095 + genOffsetX,
-                MinY = genOffsetY, MaxY = 4095 + genOffsetY,
-                MinZ = 0, MaxZ = 4095,
-            };
+            // var generateMaxValues = new ImageMaxValues() 
+            // {
+            //     MaxRGB = 255,
+            //     MinX = genOffsetX, MaxX = 4095 + genOffsetX,
+            //     MinY = genOffsetY, MaxY = 4095 + genOffsetY,
+            //     MinZ = 0, MaxZ = 4095,
+            // };
 
             // var generateMaxValues = new ImageMaxValues() 
             // {
@@ -90,7 +90,7 @@ namespace FT2232ImageOutput
 
             var imageSource = new IldaImageSource(filepath);
             // var imageSource = new IldaMultipleImageSource(ildafiles);
-            // var imageSource = new TestLineImageSource(targetMaxValues, generateMaxValues);
+            // var imageSource = new TestLineImageSource(targetMaxValues, generateMaxValues, true);
             // var imageSource = new SolidRectangleImageSource(generateMaxValues);
             // var imageSource = new RandomImageSource(generateMaxValues);
             // var imageSource = new SpruceImageSource(targetMaxValues);
@@ -141,7 +141,7 @@ namespace FT2232ImageOutput
 
                 // new DuplicatePointsFrameProcessor(10, 10f),
 
-                new AddBlankingPointsFrameProcessor()
+                new AddBlankingPointsFrameProcessor(),
 
 
                 new SliceGlitchFrameProcessor(targetMaxValues, new SliceGlitchFrameProcessorSettings(){
@@ -161,11 +161,11 @@ namespace FT2232ImageOutput
 
             };
 
-            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4);
+            var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3);
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2);
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8);
 
-            var pointBitMapper = new Mcp4921PointBitMapper(true);
+            // var pointBitMapper = new Mcp4921PointBitMapper(true);
 
             var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointBitMapper);
 

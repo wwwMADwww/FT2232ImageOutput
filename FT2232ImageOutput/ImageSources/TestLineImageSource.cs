@@ -11,11 +11,13 @@ namespace FT2232ImageOutput.ImageSources
     public class TestLineImageSource : IImageSource
     {
         private readonly ImageMaxValues _lineBounds;
+        private readonly bool _bothDirections;
 
-        public TestLineImageSource(ImageMaxValues maxValues, ImageMaxValues lineBounds)
+        public TestLineImageSource(ImageMaxValues maxValues, ImageMaxValues lineBounds, bool bothDirections)
         {
             MaxValues = maxValues;
             _lineBounds = lineBounds;
+            _bothDirections = bothDirections;
         }
 
 
@@ -40,21 +42,21 @@ namespace FT2232ImageOutput.ImageSources
 
             for (int i = _lineBounds.MinX; i <= _lineBounds.MaxX; i++)
             {
-                var point = new ImagePoint()
-                {
-                    X = i,
-                    Y = i,
-                    Z = i / zkoeff, // % (_lineBounds.MaxZ - _lineBounds.MinZ), //_lineBounds.MaxX - i,
-
-                    R = _lineBounds.MaxRGB / 2,
-                    G = _lineBounds.MaxRGB / 2,
-                    B = _lineBounds.MaxRGB / 2,
-
-                    Blanking = false
-                };
+                ImagePoint point = CreatePoint(i);
 
                 points.Add(point);
 
+            }
+
+            if (_bothDirections)
+            {
+                for (int i = _lineBounds.MaxX; i >= _lineBounds.MinX; i--)
+                {
+                    ImagePoint point = CreatePoint(i);
+
+                    points.Add(point);
+
+                }
             }
 
             points[points.Count - 2].Blanking = true;
@@ -71,5 +73,22 @@ namespace FT2232ImageOutput.ImageSources
 
         }
 
+        private ImagePoint CreatePoint(int i)
+        {
+            var point = new ImagePoint()
+            {
+                X = i,
+                Y = i,
+                // Z = i == 0 ? _lineBounds.MaxZ : 0, // i / zkoeff, // % (_lineBounds.MaxZ - _lineBounds.MinZ), //_lineBounds.MaxX - i,
+                Z = i % (_lineBounds.MaxZ - _lineBounds.MinZ), //_lineBounds.MaxX - i,
+
+                R = _lineBounds.MaxRGB / 2,
+                G = _lineBounds.MaxRGB / 2,
+                B = _lineBounds.MaxRGB / 2,
+
+                Blanking = false
+            };
+            return point;
+        }
     }
 }

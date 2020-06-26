@@ -216,7 +216,7 @@ namespace FT2232ImageOutput.PointBitMappers
 
             values[pinDataX2] = (byte)((point.X >> 2) & 0b1111);
             values[pinDataX3] = (byte)((point.X >> 6) & 0b1111);
-            values[pinDataX1Y1] = (byte)(((point.X & 0b11) << 2) | (point.Y & 0b11));
+            values[pinDataX1Y1] = (byte)(((point.Y & 0b11) << 2) | (point.X & 0b11));
             values[pinDataY2] = (byte)((point.Y >> 2) & 0b1111);
             values[pinDataY3] = (byte)((point.Y >> 6) & 0b1111);
             values[pinDataZ] = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
