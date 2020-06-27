@@ -61,7 +61,7 @@ namespace FT2232ImageOutput
             //     MinY = genOffsetY, MaxY = 1023 + genOffsetY,
             //     MinZ = 0, MaxZ = 15,
             // };
-            
+
             // var generateMaxValues = new ImageMaxValues() 
             // {
             //     MaxRGB = 255,
@@ -88,7 +88,8 @@ namespace FT2232ImageOutput
 
             // List<string> ildafiles = new List<string>();
 
-            var imageSource = new IldaImageSource(filepath);
+            var imageSource = new WaveFileImageSource(filepath);
+            // var imageSource = new IldaImageSource(filepath);
             // var imageSource = new IldaMultipleImageSource(ildafiles);
             // var imageSource = new TestLineImageSource(targetMaxValues, generateMaxValues, true);
             // var imageSource = new SolidRectangleImageSource(generateMaxValues);
@@ -129,35 +130,35 @@ namespace FT2232ImageOutput
 
                 new ScaleMaxValuesFrameProcessor(imageSource.MaxValues, targetMaxValues),
 
-                new MonochromeFrameProcessor(MonochromeFrameProcessorSourceColor.Green),
+                // new MonochromeFrameProcessor(MonochromeFrameProcessorSourceColor.Green),
 
-                new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ),
+                // new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ),
 
                 // new RotateFrameProcessor(targetMaxValues, 0, null, 0.1f, 25),
                 
                 // new RotateFrameProcessor(targetMaxValues, 90, null, 0.1f, 0),
 
-                new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
+                // new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
 
                 // new DuplicatePointsFrameProcessor(10, 10f),
 
-                new AddBlankingPointsFrameProcessor(),
+                // new AddBlankingPointsFrameProcessor(),
 
 
-                new SliceGlitchFrameProcessor(targetMaxValues, new SliceGlitchFrameProcessorSettings(){
-                    LoopFrame = true,
-                    DriftProbability = 0.2f,
-                    DriftMin = 0.2f,
-                    DriftMax = 0.4f,
-                    ShiftMin = -0.1f,
-                    ShiftMax = 0.1f,
-                    SliceCountMin = 1,
-                    SliceCountMax = 10,
-                    SliceHeightMin = 0.05f,
-                    SliceHeightMax = 0.40f,
-                    UpdateIntervalMin = TimeSpan.FromMilliseconds(30),
-                    UpdateIntervalMax = TimeSpan.FromMilliseconds(100)
-                })
+                // new SliceGlitchFrameProcessor(targetMaxValues, new SliceGlitchFrameProcessorSettings(){
+                //     LoopFrame = true,
+                //     DriftProbability = 0.2f,
+                //     DriftMin = 0.2f,
+                //     DriftMax = 0.4f,
+                //     ShiftMin = -0.1f,
+                //     ShiftMax = 0.1f,
+                //     SliceCountMin = 1,
+                //     SliceCountMax = 10,
+                //     SliceHeightMin = 0.05f,
+                //     SliceHeightMax = 0.40f,
+                //     UpdateIntervalMin = TimeSpan.FromMilliseconds(30),
+                //     UpdateIntervalMax = TimeSpan.FromMilliseconds(100)
+                // })
 
             };
 
@@ -170,7 +171,7 @@ namespace FT2232ImageOutput
             var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointBitMapper);
 
 
-            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 24, 10000);
+            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 2000, 10000);
 
             mainProcess.Start();
 

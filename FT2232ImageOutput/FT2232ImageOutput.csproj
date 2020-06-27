@@ -42,6 +42,9 @@
     <Reference Include="FTD2XX_NET">
       <HintPath>FTD2XX_NET_v1.1.0\FTD2XX_NET.dll</HintPath>
     </Reference>
+    <Reference Include="ratchet-waveform, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ratchet.IO.Format.Waveform.1.0.14.0\lib\net45\ratchet-waveform.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -56,6 +59,7 @@
     <Compile Include="FrameProcessors\DuplicatePointsFrameProcessor.cs" />
     <Compile Include="FrameProcessors\SliceGlitchFrameProcessor.cs" />
     <Compile Include="ImageSources\RawNumberImageSource.cs" />
+    <Compile Include="ImageSources\WaveFileImageSource.cs" />
     <Compile Include="MatrixBootstrap.cs" />
     <Compile Include="ImageSources\MatrixImageSource.cs" />
     <Compile Include="FrameProcessors\MonochromeFrameProcessor.cs" />
