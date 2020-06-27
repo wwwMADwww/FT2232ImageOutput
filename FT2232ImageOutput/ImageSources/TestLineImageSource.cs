@@ -1,4 +1,5 @@
 ﻿using DSS.ILDA;
+using FT2232ImageOutput.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -78,9 +79,14 @@ namespace FT2232ImageOutput.ImageSources
             var point = new ImagePoint()
             {
                 X = i,
-                Y = i,
-                // Z = i == 0 ? _lineBounds.MaxZ : 0, // i / zkoeff, // % (_lineBounds.MaxZ - _lineBounds.MinZ), //_lineBounds.MaxX - i,
-                Z = i % (_lineBounds.MaxZ - _lineBounds.MinZ), //_lineBounds.MaxX - i,
+
+                Y = ((_lineBounds.MinX == _lineBounds.MinY) && (_lineBounds.MaxX == _lineBounds.MaxY))
+                    ? i
+                    : MathUtils.ConvertRange(_lineBounds.MinX, _lineBounds.MaxX, _lineBounds.MinY, _lineBounds.MaxY, i),
+
+                Z = ((_lineBounds.MinX == _lineBounds.MinZ) && (_lineBounds.MaxX == _lineBounds.MaxZ))
+                    ? i
+                    : MathUtils.ConvertRange(_lineBounds.MinX, _lineBounds.MaxX, _lineBounds.MinZ, _lineBounds.MaxZ, i),
 
                 R = _lineBounds.MaxRGB / 2,
                 G = _lineBounds.MaxRGB / 2,
