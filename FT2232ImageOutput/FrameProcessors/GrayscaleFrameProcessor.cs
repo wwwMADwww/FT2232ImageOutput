@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FT2232ImageOutput.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,7 +45,7 @@ namespace FT2232ImageOutput.FrameProcessors
             {
 
                 // almost fisrt from google
-                int gray = (byte)(.21 * point.R + .71 * point.G + .071 * point.B);
+                int gray = (int)(.21 * point.R + .71 * point.G + .071 * point.B);
 
                 var newPoint = point.Clone();
 
@@ -58,7 +59,7 @@ namespace FT2232ImageOutput.FrameProcessors
                         break;
 
                     case GrayscaleFrameProcessorMapMode.CoordZ:
-                        newPoint.Z = gray;
+                        newPoint.Z = MathUtils.ConvertRange(0, _maxValues.MaxRGB, _maxValues.MinZ, _maxValues.MaxZ, gray);
                         break;
 
                 }

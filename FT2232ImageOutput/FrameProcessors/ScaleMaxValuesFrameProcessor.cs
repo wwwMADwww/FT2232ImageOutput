@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FT2232ImageOutput.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,13 +44,13 @@ namespace FT2232ImageOutput.FrameProcessors
             {
                 var newPoint = new ImagePoint()
                 {
-                    X = ConvertRange(_maxValues.MinX, _maxValues.MaxX, _targetMaxValues.MinX, _targetMaxValues.MaxX, point.X),
-                    Y = ConvertRange(_maxValues.MinY, _maxValues.MaxY, _targetMaxValues.MinY, _targetMaxValues.MaxY, point.Y),
-                    Z = ConvertRange(_maxValues.MinZ, _maxValues.MaxZ, _targetMaxValues.MinZ, _targetMaxValues.MaxZ, point.Z),
-
-                    R = ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.R),
-                    G = ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.G),
-                    B = ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.B),
+                    X = MathUtils.ConvertRange(_maxValues.MinX, _maxValues.MaxX, _targetMaxValues.MinX, _targetMaxValues.MaxX, point.X),
+                    Y = MathUtils.ConvertRange(_maxValues.MinY, _maxValues.MaxY, _targetMaxValues.MinY, _targetMaxValues.MaxY, point.Y),
+                    Z = MathUtils.ConvertRange(_maxValues.MinZ, _maxValues.MaxZ, _targetMaxValues.MinZ, _targetMaxValues.MaxZ, point.Z),
+                        
+                    R = MathUtils.ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.R),
+                    G = MathUtils.ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.G),
+                    B = MathUtils.ConvertRange(0, _maxValues.MaxRGB, 0, _targetMaxValues.MaxRGB, point.B),
 
                     Blanking = point.Blanking
                 };
@@ -59,17 +60,7 @@ namespace FT2232ImageOutput.FrameProcessors
 
             yield break;
         }
-               
-
-        // https://stackoverflow.com/questions/4229662/convert-numbers-within-a-range-to-numbers-within-another-range
-        int ConvertRange(
-            int originalStart, int originalEnd, // original range
-            int newStart, int newEnd, // desired range
-            int value) // value to convert
-        {
-            double scale = (double)(newEnd - newStart) / (originalEnd - originalStart);
-            return (int)(newStart + ((value - originalStart) * scale));
-        }
+            
 
 
 
