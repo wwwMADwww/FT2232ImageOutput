@@ -144,26 +144,27 @@ namespace FT2232ImageOutput
                 new AddBlankingPointsFrameProcessor(),
 
 
-                new SliceGlitchFrameProcessor(targetMaxValues, new SliceGlitchFrameProcessorSettings(){
-                    LoopFrame = true,
-                    DriftProbability = 0.2f,
-                    DriftMin = 0.2f,
-                    DriftMax = 0.4f,
-                    ShiftMin = -0.1f,
-                    ShiftMax = 0.1f,
-                    SliceCountMin = 1,
-                    SliceCountMax = 10,
-                    SliceHeightMin = 0.05f,
-                    SliceHeightMax = 0.40f,
-                    UpdateIntervalMin = TimeSpan.FromMilliseconds(30),
-                    UpdateIntervalMax = TimeSpan.FromMilliseconds(100)
-                })
+                // new SliceGlitchFrameProcessor(targetMaxValues, new SliceGlitchFrameProcessorSettings(){
+                //     LoopFrame = true,
+                //     DriftProbability = 0.2f,
+                //     DriftMin = 0.2f,
+                //     DriftMax = 0.4f,
+                //     ShiftMin = -0.1f,
+                //     ShiftMax = 0.1f,
+                //     SliceCountMin = 1,
+                //     SliceCountMax = 10,
+                //     SliceHeightMin = 0.05f,
+                //     SliceHeightMax = 0.40f,
+                //     UpdateIntervalMin = TimeSpan.FromMilliseconds(30),
+                //     UpdateIntervalMax = TimeSpan.FromMilliseconds(100)
+                // })
 
             };
 
             var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3);
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2);
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8);
+            // var pointBitMapper = new DirectPointBitMapper();
 
             // var pointBitMapper = new Mcp4921PointBitMapper(true);
 
