@@ -88,6 +88,13 @@ namespace FT2232ImageOutput
 
             // List<string> ildafiles = new List<string>();
 
+            // sample rate | baudrate
+            //      192000     307200
+            //       96000     153600
+            //       48000      76800
+            //       44100      70550
+            // var imageSource = new WaveFileImageSource(filepath);
+
             var imageSource = new IldaImageSource(filepath);
             // var imageSource = new IldaMultipleImageSource(ildafiles);
             // var imageSource = new TestLineImageSource(targetMaxValues, generateMaxValues, true);
@@ -129,19 +136,19 @@ namespace FT2232ImageOutput
 
                 new ScaleMaxValuesFrameProcessor(imageSource.MaxValues, targetMaxValues),
 
-                new MonochromeFrameProcessor(MonochromeFrameProcessorSourceColor.Green),
+                // new MonochromeFrameProcessor(MonochromeFrameProcessorSourceColor.Green),
 
-                new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ),
+                // new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ),
 
                 // new RotateFrameProcessor(targetMaxValues, 0, null, 0.1f, 25),
                 
                 // new RotateFrameProcessor(targetMaxValues, 90, null, 0.1f, 0),
 
-                new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
+                // new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
 
                 // new DuplicatePointsFrameProcessor(10, 10f),
 
-                new AddBlankingPointsFrameProcessor(),
+                // new AddBlankingPointsFrameProcessor(),
 
 
                 // new SliceGlitchFrameProcessor(targetMaxValues, new SliceGlitchFrameProcessorSettings(){
@@ -171,7 +178,7 @@ namespace FT2232ImageOutput
             var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointBitMapper);
 
 
-            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 24, 10000);
+            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 2000, 10000);
 
             mainProcess.Start();
 
