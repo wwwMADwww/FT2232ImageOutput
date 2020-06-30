@@ -88,7 +88,13 @@ namespace FT2232ImageOutput
 
             // List<string> ildafiles = new List<string>();
 
+            // sample rate | baudrate
+            //      192000     307200
+            //       96000     153600
+            //       48000      76800
+            //       44100      70550
             var imageSource = new WaveFileImageSource(filepath);
+
             // var imageSource = new IldaImageSource(filepath);
             // var imageSource = new IldaMultipleImageSource(ildafiles);
             // var imageSource = new TestLineImageSource(targetMaxValues, generateMaxValues, true);
@@ -159,7 +165,7 @@ namespace FT2232ImageOutput
                 //     UpdateIntervalMin = TimeSpan.FromMilliseconds(30),
                 //     UpdateIntervalMax = TimeSpan.FromMilliseconds(100)
                 // })
-
+                
             };
 
             var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3);

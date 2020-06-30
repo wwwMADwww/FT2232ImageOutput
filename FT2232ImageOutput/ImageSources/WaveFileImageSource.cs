@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace FT2232ImageOutput.ImageSources
 {
 
+    // TODO: custom channel mapping
     public enum WaveFileImageSourceChannelMode { LeftX_RightY, LeftY_RightX }
 
     public class WaveFileImageSource : IImageSource
@@ -54,9 +55,6 @@ namespace FT2232ImageOutput.ImageSources
             if (Directory.Exists(_filePath))
                 throw new ArgumentException($"Path '{_filePath}' is a directory.");
 
-            // TODO: fix int bug in library
-            // Waveform.Sound<short> s;
-
             using (FileStream fs = new FileStream(_filePath, FileMode.Open, FileAccess.Read))
             {
                 _sound = Waveform.Read<short>(fs);
@@ -73,6 +71,10 @@ namespace FT2232ImageOutput.ImageSources
                 Console.WriteLine($"length {c.Length}:");
                 Console.WriteLine($"samples count {c.Samples.Length}:");
             }
+
+
+            if (_sound.Channels.Count == 1)
+                _channelY = _channelX;
 
             MaxValues = new ImageMaxValues()
             {
