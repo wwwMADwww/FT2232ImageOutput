@@ -1,3 +1,6 @@
 [submodule "DSS.ILDA"]
 	path = DSS.ILDA
 	url = https://github.com/wwwMADwww/DSS.ILDA
+[submodule "FTD2XX_DotNetCoreWrapper"]
+	path = FTD2XX_DotNetCoreWrapper
+	url = https://github.com/wwwMADwww/FTD2XX_DotNetCoreWrapper.git

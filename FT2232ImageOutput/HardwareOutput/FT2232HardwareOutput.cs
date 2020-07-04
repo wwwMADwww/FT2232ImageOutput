@@ -17,8 +17,11 @@ namespace FT2232ImageOutput.HardwareOutput
         protected readonly uint _baudrate;
         protected readonly IPointBitMapper _pointBitMapper;
         protected int _bufferSize = 4096;
+        protected TimeSpan _maxSequentialIoErrorsTime = TimeSpan.FromSeconds(3);
 
         protected FTDI _channel;
+
+        protected DateTime _sequentialIoErrorsTimeStart = default;
 
         public FT2232HardwareOutput(string channelName, uint baudrate, IPointBitMapper pointBitMapper)
         {
@@ -52,18 +55,40 @@ namespace FT2232ImageOutput.HardwareOutput
                 uint written = 0;
                 FTDI.FT_STATUS status;
 
-                status = channel.Write(sendbuf, dataBuf.Length - writtenTotal, ref written);
-
-                // TODO: reconnect and retry when fails
-                // Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
-
-                if (status == FTDI.FT_STATUS.FT_IO_ERROR)
+                while (true)
                 {
-                    status = _channel.Close();
-                    _channel = OpenChannel(_channelName, _baudrate);
+
+                    status = channel.Write(sendbuf, dataBuf.Length - writtenTotal, ref written);
+
+                    // TODO: reconnect and retry when fails
+                    // Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
+
+                    if (status == FTDI.FT_STATUS.FT_IO_ERROR)
+                    {
+
+                        if (_sequentialIoErrorsTimeStart == default)
+                        {
+                            _sequentialIoErrorsTimeStart = DateTime.Now;
+                            continue;
+                        }
+                        else
+                        {
+                            if (DateTime.Now - _sequentialIoErrorsTimeStart >= _maxSequentialIoErrorsTime)
+                                throw new Exception("Exceeded sequential IO errors time.");
+                            else
+                                continue;
+                        }
+
+                        // current FTDI drivers wont let you do this anyway
+                        // status = _channel.Close();
+                        // _channel = OpenChannel(_channelName, _baudrate);
+                    }
+                    else
+                        Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
+
+                    _sequentialIoErrorsTimeStart = default;
+                    break;
                 }
-                else
-                    Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
 
                 writtenTotal += (int)written;
 
@@ -80,6 +105,22 @@ namespace FT2232ImageOutput.HardwareOutput
             var res = new FTDI();
 
             FTDI.FT_STATUS status = FTDI.FT_STATUS.FT_OTHER_ERROR;
+
+            FTDI.FT_DEVICE_INFO_NODE[] devicelist = new FTDI.FT_DEVICE_INFO_NODE[255];
+
+            status = res.GetDeviceList(devicelist);
+            
+            // // ON LINUX RUN APP WITH SUDO OR CONFIGURE ACCESS TO USB FTDI DEVICES
+            // Console.WriteLine($"getdevicelist status is {status}");
+            // foreach(var device in devicelist.Where(x => x != null))
+            // {
+            //     Console.WriteLine($"Description is '{device.Description}'");
+            //     Console.WriteLine($"SerialNumber is '{device.SerialNumber}'");
+            //     Console.WriteLine($"ID is '{device.ID}'");
+            //     Console.WriteLine($"LocId is '{device.LocId}'");
+            //     Console.WriteLine($"Type is '{device.Type}'");
+            //     Console.WriteLine($"------");
+            // }
 
             status = res.OpenBySerialNumber(channelName);
 
