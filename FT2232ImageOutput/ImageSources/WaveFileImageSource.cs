@@ -1,170 +1,168 @@
-﻿// using DSS.ILDA;
-// using Ratchet.IO.Format;
-// using System;
-// using System.Collections.Generic;
-// using System.IO;
-// using System.Linq;
-// using System.Text;
-// using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MathCore.WAV;
 
-// namespace FT2232ImageOutput.ImageSources
-// {
+namespace FT2232ImageOutput.ImageSources
+{
 
-//     // TODO: custom channel mapping
-//     public enum WaveFileImageSourceChannelMode { LeftX_RightY, LeftY_RightX }
+    // TODO: custom channel mapping
+    public enum WaveFileImageSourceChannelMode { LeftX_RightY, LeftY_RightX }
 
-//     public class WaveFileImageSource : IImageSource
-//     {
-//         private readonly string _filePath;
+    public class WaveFileImageSource : IImageSource
+    {
+        private readonly string _filePath;
+        private readonly WaveFileImageSourceChannelMode _channelMode;
 
-//         // TODO: fix int bug in library
-//         private readonly Waveform.Sound<short> _sound;
-//         private readonly WaveFileImageSourceChannelMode _channelMode;
-//         private readonly int _channelX;
-//         private readonly int _channelY;
+        private int _sampleRate;
+        private readonly long[] _channelX;
+        private readonly long[] _channelY;
 
-//         public WaveFileImageSource(
-//             string filePath, 
-//             WaveFileImageSourceChannelMode channelMode = WaveFileImageSourceChannelMode.LeftX_RightY
-//             )
-//         {
+        public WaveFileImageSource(
+            string filePath, 
+            WaveFileImageSourceChannelMode channelMode = WaveFileImageSourceChannelMode.LeftX_RightY
+            )
+        {
 
-//             _channelMode = channelMode;
+            _channelMode = channelMode;
 
-//             switch (_channelMode)
-//             {
-//                 case WaveFileImageSourceChannelMode.LeftX_RightY:
-//                     _channelX = 0;
-//                     _channelY = 1;
-//                     break;
+            
+            _filePath = Path.GetFullPath(filePath);
 
-//                 case WaveFileImageSourceChannelMode.LeftY_RightX:
-//                     _channelX = 1;
-//                     _channelY = 0;
-//                     break;
+            if (!File.Exists(_filePath))
+                throw new FileNotFoundException($"File '{_filePath}' does not exists.");
 
-//                 default:
-//                     throw new ArgumentException($"Unknown channel mode {channelMode}");
-//             }
-
-//             _filePath = Path.GetFullPath(filePath);
-
-//             if (!File.Exists(_filePath))
-//                 throw new FileNotFoundException($"File '{_filePath}' does not exists.");
-
-//             if (Directory.Exists(_filePath))
-//                 throw new ArgumentException($"Path '{_filePath}' is a directory.");
-
-//             using (FileStream fs = new FileStream(_filePath, FileMode.Open, FileAccess.Read))
-//             {
-//                 _sound = Waveform.Read<short>(fs);
-//             }
-
-//             Console.WriteLine($"wave file '{_filePath}'");
-//             Console.WriteLine($"duration {_sound.Duration}");
-//             Console.WriteLine($"length {_sound.Length}");
-//             Console.WriteLine($"sample rate {_sound.SampleRate}");
-//             Console.WriteLine($"channels {_sound.Channels.Count}:");
-
-//             foreach (var c in _sound.Channels)
-//             {
-//                 Console.WriteLine($"length {c.Length}:");
-//                 Console.WriteLine($"samples count {c.Samples.Length}:");
-//             }
+            if (Directory.Exists(_filePath))
+                throw new ArgumentException($"Path '{_filePath}' is a directory.");
 
 
-//             if (_sound.Channels.Count == 1)
-//                 _channelY = _channelX;
+            var wav = new WavFile(_filePath);
 
-//             MaxValues = new ImageMaxValues()
-//             {
-//                 MaxRGB = 1,
-//                 MinX = short.MinValue,
-//                 MinY = short.MinValue,
-//                 MinZ = 0,
+            Console.WriteLine($"wave file '{_filePath}'");
+            Console.WriteLine($"duration {wav.FileTimeLength}");
+            Console.WriteLine($"length {wav.FullLength}");
+            Console.WriteLine($"sample rate {wav.SampleRate}");
+            Console.WriteLine($"channels {wav.ChannelsCount}:");
 
-//                 MaxX = short.MaxValue,
-//                 MaxY = short.MaxValue,
-//                 MaxZ = 1
-//             };
+            _sampleRate = wav.SampleRate;
 
-//             // foreach (var i in _sound.Channels.First().Samples)
-//             // {
-//             //     Console.WriteLine(i);
-//             // }
-//         }
+            if (wav.ChannelsCount == 1)
+            {
+                _channelY = _channelX = wav.GetChannel(0);
+            }
+            else
+            {
+                switch (_channelMode)
+                {
+                    case WaveFileImageSourceChannelMode.LeftX_RightY:
+                        _channelX = wav.GetChannel(0);
+                        _channelY = wav.GetChannel(1);
+                        break;
+
+                    case WaveFileImageSourceChannelMode.LeftY_RightX:
+                        _channelX = wav.GetChannel(1);
+                        _channelY = wav.GetChannel(0);
+                        break;
+
+                    default:
+                        throw new ArgumentException($"Unknown channel mode {channelMode}");
+                }
+            }
 
 
-//         public ImageType ImageType => ImageType.Vector;
+            MaxValues = new ImageMaxValues()
+            {
+                MaxRGB = 1,
+                MinX = short.MinValue,
+                MinY = short.MinValue,
+                MinZ = 0,
 
-//         public bool Streaming => false;
+                MaxX = short.MaxValue,
+                MaxY = short.MaxValue,
+                MaxZ = 1
+            };
+            
+            // foreach (var i in _channelX)
+            // {
+            //     Console.WriteLine(i);
+            // }
+
+        }
+
+
+        public ImageType ImageType => ImageType.Vector;
+
+        public bool Streaming => false;
 
 
 
-//         public ImageMaxValues MaxValues { get; }
+        public ImageMaxValues MaxValues { get; }
 
 
 
-//         public IEnumerable<ImageFrame> GetFrames()
-//         {
+        public IEnumerable<ImageFrame> GetFrames()
+        {
 
-//             var frameCount = _sound.Length / (int)(_sound.SampleRate / 100);
+            var frameCount = (int)_channelX.Length / (int)(_sampleRate / 100);
 
-//             if (frameCount == 0)
-//                 frameCount = 1;
+            if (frameCount == 0)
+                frameCount = 1;
 
-//             foreach (var f in Enumerable.Range(0, frameCount))
-//             {
+            foreach (var f in Enumerable.Range(0, frameCount))
+            {
 
-//                 yield return new ImageFrame()
-//                 {
-//                     Duration = -1,
-//                     Number = f,
-//                     Points = GetPoints(f * ((int)_sound.SampleRate / 100), (int)_sound.SampleRate / 100) // 3600
-//                 };
+                yield return new ImageFrame()
+                {
+                    Duration = -1,
+                    Number = f,
+                    Points = GetPoints(f * ((int)_sampleRate / 100), (int)_sampleRate / 100) // 3600
+                };
 
-//             }
+            }
 
-//             yield break;
+            yield break;
 
-//         }
+        }
 
-//         IEnumerable<ImagePoint> GetPoints(int start, int count)
-//         {
+        IEnumerable<ImagePoint> GetPoints(int start, int count)
+        {
 
-//             int stop = start + count;
+            long stop = start + count;
 
-//             if (stop > _sound.Length)
-//                 stop = _sound.Length;
+            if (stop > _channelX.Length)
+                stop = _channelX.Length;
 
-//             count = stop - start;
+            count = (int) stop - start;
 
-//             var points = new ImagePoint[count];
+            var points = new ImagePoint[count];
 
-//             foreach (var i in Enumerable.Range(start, count))
-//             {
+            foreach (var i in Enumerable.Range(start, count))
+            {
 
-//                 points[i - start] = new ImagePoint()
-//                 {
-//                     X = _sound.Channels[_channelX].Samples[i],
-//                     Y = _sound.Channels[_channelY].Samples[i],
-//                     Z = MaxValues.MaxZ,
+                points[i - start] = new ImagePoint()
+                {
+                    X = (int) _channelX[i],
+                    Y = (int) _channelY[i],
+                    Z = MaxValues.MaxZ,
 
-//                     R = MaxValues.MaxRGB,
-//                     G = MaxValues.MaxRGB,
-//                     B = MaxValues.MaxRGB,
+                    R = MaxValues.MaxRGB,
+                    G = MaxValues.MaxRGB,
+                    B = MaxValues.MaxRGB,
 
-//                     Blanking = false
-//                 };
+                    Blanking = false
+                };
 
-//             }
+            }
 
-//             return points;
-
-
-//         }
-
-//     }
+            return points;
 
 
-// }
+        }
+
+    }
+
+
+}
