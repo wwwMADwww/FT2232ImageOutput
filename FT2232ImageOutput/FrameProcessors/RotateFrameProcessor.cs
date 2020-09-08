@@ -52,11 +52,11 @@ namespace FT2232ImageOutput.FrameProcessors
             res.Duration = frame.Duration;
             res.Number = frame.Number;
 
-            if (!frame.Points.Any())
-            {
-                res.Points = new ImagePoint[0];
-                return res;
-            }
+            // if (!frame.Points.Any())
+            // {
+            //     res.Points = new ImagePoint[0];
+            //     return res;
+            // }
 
 
             res.Points = GetPoints(frame.Points);
