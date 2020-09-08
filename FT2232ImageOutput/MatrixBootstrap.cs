@@ -18,7 +18,7 @@ namespace FT2232ImageOutput
             List<Symbol> symbols = new List<Symbol>();
 
 
-            var blanker = new AddBlankingPointsFrameProcessor();
+            var blanker = new AddBlankingPointsFrameProcessor(10, 10, true);
 
             foreach (var file in Directory.EnumerateFiles(dir, "*.ild"))
             {
