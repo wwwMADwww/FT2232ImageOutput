@@ -51,7 +51,7 @@ namespace FT2232ImageOutput.MainProcessors
         }
 
 
-        async Task FrameReadAndProcess()
+        Task FrameReadAndProcess()
         {
             int frameInterval = (int) Math.Floor(1000.0 / _framerate);
 
@@ -80,7 +80,7 @@ namespace FT2232ImageOutput.MainProcessors
 
                         sw.Start();
 
-                        foreach (var frame in processedFrames.Where(p => p.Points.Any()))
+                        foreach (var frame in processedFrames) //.Where(p => p.Points.Any()))
                         {
                             sw.Reset();
                             sw.Start();
@@ -98,9 +98,9 @@ namespace FT2232ImageOutput.MainProcessors
                             frameBytes = dataStream.ToArray();
 
 
-                            var b = await _frameDrawnSemaphore.WaitAsync(_waitTimeout);
+                            var b = _frameDrawnSemaphore.Wait(_waitTimeout);
                             Debug.Assert(b); // trying to catch a deadlock. maybe already fixed.
-                            b = await _frameBufUpdateSemaphore.WaitAsync(_waitTimeout);
+                            b = _frameBufUpdateSemaphore.Wait(_waitTimeout);
                             Debug.Assert(b);
                             _frameBuf = frameBytes;
                             _frameBufUpdateSemaphore.Release();
@@ -138,14 +138,14 @@ namespace FT2232ImageOutput.MainProcessors
         }
 
 
-        async Task FrameOutput()
+        Task FrameOutput()
         {
             try
             {
                 while (true)
                 {
 
-                    var b = await _frameBufUpdateSemaphore.WaitAsync(_waitTimeout);
+                    var b = _frameBufUpdateSemaphore.Wait(_waitTimeout);
                     Debug.Assert(b);
 
 
