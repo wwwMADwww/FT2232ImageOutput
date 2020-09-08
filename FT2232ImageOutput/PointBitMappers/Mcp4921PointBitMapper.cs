@@ -12,14 +12,16 @@ namespace FT2232ImageOutput.PointBitMappers
     public class Mcp4921PointBitMapper : IPointBitMapper
     {
         private readonly bool _analogZ;
+        private readonly bool _manualDataClock;
 
         const int _packetMask    = 0b1111111111111111;
         const int _dataMask      = 0b0000111111111111;
         const int _configuration = 0b0111000000000000;
         
-        public Mcp4921PointBitMapper(bool analogZ)
+        public Mcp4921PointBitMapper(bool analogZ, bool manualDataClock)
         {
             _analogZ = analogZ;
+            _manualDataClock = manualDataClock;
         }
 
         public byte[] Map(ImagePoint point)
@@ -46,21 +48,24 @@ namespace FT2232ImageOutput.PointBitMappers
             else
                 values[pinDataZ] = point.Blanking ? _packetMask : 0;
 
-            var bytes = GetDataAndClockBytes(values, 16, pinSelect, pinShift, pinStore, false);
+            var bytes = GetDataAndClockBytes(values, 16, pinSelect, pinShift, pinStore, _manualDataClock, false);
 
             return bytes;
         }
 
         
         // TODO: Unify SPI/shift register mapping
-        protected byte[] GetDataAndClockBytes(int[] values, int bitsCount, int pinSelect, int pinShift, int pinStore, bool resetDataOnClock)
+        protected byte[] GetDataAndClockBytes(int[] values, int bitsCount, int pinSelect, int pinShift, int pinStore, bool manualDataClock, bool resetDataOnClock)
         {
-            var buf = new byte[(2 * bitsCount) + 3];
+
+            var buf = new byte[(manualDataClock ? 2 * bitsCount : bitsCount) + 1];
             int bufpos = 0;
 
 
             // cs 1, store 1
-            buf[0] = (byte)((1 << pinSelect) | (1 << pinStore));
+            // buf[bufpos] = (byte)((1 << pinSelect) | (1 << pinStore));
+            buf[bufpos] = (byte)((1 << pinSelect));
+            bufpos++;
 
             // bits 1 - 32
             // data D, cs 0, store 1
@@ -74,22 +79,26 @@ namespace FT2232ImageOutput.PointBitMappers
                 }
 
                 // write data to buffer
-                buf[bufpos + 1] = data;
+                buf[bufpos] = data;
                 bufpos++;
 
-                // after each data bit transmission Shift pin goes HIGH
-                buf[bufpos + 1] = (byte)((1 << pinShift) | (resetDataOnClock ? 0 : data) | (1 << pinStore));
+                if (manualDataClock)
+                {
+                    // after each data bit transmission Shift pin goes HIGH
+                    buf[bufpos] = (byte)((1 << pinShift) | (resetDataOnClock ? 0 : data) | (1 << pinStore));
 
-                //str += ConsoleOut(buf[bufpos + 1]);
-                bufpos++;
+                    //str += ConsoleOut(buf[bufpos + 1]);
+                    bufpos++;
+                }
 
             }
 
-            // cs 1, store 1
-            buf[33] = (byte)((1 << pinSelect) | (1 << pinStore));
-
-            // cs 1, store 0
-            buf[34] = (byte)(1 << pinSelect);
+            // // cs 1, store 1
+            // buf[bufpos] = (byte)((1 << pinSelect) | (1 << pinStore));
+            // bufpos++;
+            // 
+            // // cs 1, store 0
+            // buf[bufpos] = (byte)(1 << pinSelect);
 
 
             return buf;
