@@ -9,6 +9,8 @@ namespace FT2232ImageOutput
 {
     public interface IPointBitMapper
     {
+        int MaxBytesPerPoint { get; }
+
         byte[] Map(ImagePoint point);
     }
 }

@@ -14,15 +14,19 @@ namespace FT2232ImageOutput.PointBitMappers
         private readonly bool _analogZ;
         private readonly bool _manualDataClock;
 
-        const int _packetMask    = 0b1111111111111111;
-        const int _dataMask      = 0b0000111111111111;
+        const int _packetMask = 0b1111111111111111;
+        const int _dataMask = 0b0000111111111111;
         const int _configuration = 0b0111000000000000;
-        
+
         public Mcp4921PointBitMapper(bool analogZ, bool manualDataClock)
         {
             _analogZ = analogZ;
             _manualDataClock = manualDataClock;
         }
+
+
+        public int MaxBytesPerPoint => (_manualDataClock ? 2 * 16 : 16) + 1;
+
 
         public byte[] Map(ImagePoint point)
         {

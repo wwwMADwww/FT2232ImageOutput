@@ -52,6 +52,26 @@ namespace FT2232ImageOutput.PointBitMappers
             }
         }
 
+        public int MaxBytesPerPoint { get 
+            {
+                switch (_mode)
+                {
+                    case ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8:
+                    case ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4: 
+                    case ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY10_Z4_2: return 16;
+
+                    case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4: 
+                    case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2: 
+                    case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3: return 8;
+
+                    case ShiftRegisterPointBitMapperMode.Mode_Sr8x5_XY16_Z8: return 16;
+
+                    default:
+                        throw new ArgumentException($"Unknown mapping mode {_mode}", nameof(_mode));
+                }
+            }
+        }
+
 
 
         byte[] Mode_Sr8x3_XY8_Z8(ImagePoint point)

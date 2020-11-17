@@ -32,19 +32,21 @@ namespace FT2232ImageOutput.HardwareOutput
             _channel = OpenChannel(_channelName, _baudrate);
         }
 
-        public void Output(IEnumerable<byte> bytes)
+        public int MaxBytes => _bufferSize;
+
+        public void Output(IEnumerable<byte> bytes, bool flush)
         {
             
             var buffer = bytes.ToArray();
             
-            WriteToChannel(_channel, buffer);
+            WriteToChannel(_channel, buffer, flush);
 
 
         }
 
 
 
-        protected void WriteToChannel(FTDI channel, byte[] dataBuf)
+        protected void WriteToChannel(FTDI channel, byte[] dataBuf, bool flush)
         {
             var writtenTotal = 0;
 
@@ -95,6 +97,10 @@ namespace FT2232ImageOutput.HardwareOutput
                 sendbuf = new byte[dataBuf.Length];
                 Array.Copy(dataBuf, writtenTotal, sendbuf, 0, dataBuf.Length - writtenTotal);
             }
+
+            if (flush)
+                channel.Purge(FTDI.FT_PURGE.FT_PURGE_TX);
+
         }
 
 
@@ -110,17 +116,17 @@ namespace FT2232ImageOutput.HardwareOutput
 
             status = res.GetDeviceList(devicelist);
             
-            // // ON LINUX RUN APP WITH SUDO OR CONFIGURE ACCESS TO USB FTDI DEVICES
-            // Console.WriteLine($"getdevicelist status is {status}");
-            // foreach(var device in devicelist.Where(x => x != null))
-            // {
-            //     Console.WriteLine($"Description is '{device.Description}'");
-            //     Console.WriteLine($"SerialNumber is '{device.SerialNumber}'");
-            //     Console.WriteLine($"ID is '{device.ID}'");
-            //     Console.WriteLine($"LocId is '{device.LocId}'");
-            //     Console.WriteLine($"Type is '{device.Type}'");
-            //     Console.WriteLine($"------");
-            // }
+            // ON LINUX RUN APP WITH SUDO OR CONFIGURE ACCESS TO USB FTDI DEVICES
+            Console.WriteLine($"getdevicelist status is {status}");
+            foreach(var device in devicelist.Where(x => x != null))
+            {
+                Console.WriteLine($"Description is '{device.Description}'");
+                Console.WriteLine($"SerialNumber is '{device.SerialNumber}'");
+                Console.WriteLine($"ID is '{device.ID}'");
+                Console.WriteLine($"LocId is '{device.LocId}'");
+                Console.WriteLine($"Type is '{device.Type}'");
+                Console.WriteLine($"------");
+            }
 
             status = res.OpenBySerialNumber(channelName);
 

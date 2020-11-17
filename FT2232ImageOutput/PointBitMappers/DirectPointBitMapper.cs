@@ -16,10 +16,12 @@ namespace FT2232ImageOutput.PointBitMappers
         {
         }
 
+        public int MaxBytesPerPoint => 1;
+
         public byte[] Map(ImagePoint point)
         {
             return new byte[] { (byte) (point.X & (byte) 0xFF) };
-        } 
+        }
 
 
     }

@@ -19,7 +19,7 @@ namespace FT2232ImageOutput.MainProcessors
         private readonly int _framerate;
         private readonly int _waitTimeout;
 
-        byte[] _frameBuf = new byte[0];
+        byte[][] _frameBuf = new byte[0][];
         SemaphoreSlim _frameDrawnSemaphore;
         SemaphoreSlim _frameBufUpdateSemaphore;
 
@@ -85,7 +85,7 @@ namespace FT2232ImageOutput.MainProcessors
                             sw.Reset();
                             sw.Start();
 
-                            byte[] frameBytes;
+                            List<byte[]> frameBytes = new List<byte[]>();
 
                             foreach (var point in frame.Points.ToArray())
                             {
@@ -93,16 +93,32 @@ namespace FT2232ImageOutput.MainProcessors
 
                                 dataStream.Write(bits, 0, bits.Length);
 
+                                if ((dataStream.Length + _bitMapper.MaxBytesPerPoint * 2) > _hardwareOutput.MaxBytes)
+                                {
+                                    var blankedPoint = point.Clone();
+                                    blankedPoint.Blanking = true;
+                                    
+                                    bits = _bitMapper.Map(blankedPoint);
+                                    
+                                    dataStream.Write(bits, 0, bits.Length);
+                                
+                                    // MemoryStream.ToArray() returns a copy of data
+                                    frameBytes.Add(dataStream.ToArray());
+                                
+                                    dataStream.SetLength(0);
+                                }
+
                             }
 
-                            frameBytes = dataStream.ToArray();
 
+                            frameBytes.Add(dataStream.ToArray());
+                            dataStream.SetLength(0);
 
                             var b = _frameDrawnSemaphore.Wait(_waitTimeout);
                             Debug.Assert(b); // trying to catch a deadlock. maybe already fixed.
                             b = _frameBufUpdateSemaphore.Wait(_waitTimeout);
                             Debug.Assert(b);
-                            _frameBuf = frameBytes;
+                            _frameBuf = frameBytes.ToArray();
                             _frameBufUpdateSemaphore.Release();
 
                             dataStream.SetLength(0);
@@ -150,7 +166,9 @@ namespace FT2232ImageOutput.MainProcessors
 
 
                     var frameBytes = _frameBuf;
-                    _hardwareOutput.Output(frameBytes);
+
+                    foreach(var fb in frameBytes)
+                        _hardwareOutput.Output(fb, true);
 
                     _frameBufUpdateSemaphore.Release();
 

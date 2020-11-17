@@ -8,6 +8,8 @@ namespace FT2232ImageOutput
 {
     public interface IHardwareOutput
     {
-        void Output(IEnumerable<byte> bytes);
+        int MaxBytes { get; }
+
+        void Output(IEnumerable<byte> bytes, bool flush);
     }
 }
