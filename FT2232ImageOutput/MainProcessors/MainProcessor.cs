@@ -18,7 +18,7 @@ namespace FT2232ImageOutput.MainProcessors
 
         private readonly int _framerate;
         private readonly int _waitTimeout;
-
+        private readonly bool _overflowPreventing;
         byte[][] _frameBuf = new byte[0][];
         SemaphoreSlim _frameDrawnSemaphore;
         SemaphoreSlim _frameBufUpdateSemaphore;
@@ -30,7 +30,8 @@ namespace FT2232ImageOutput.MainProcessors
             IPointBitMapper bitMapper,
             IHardwareOutput hardwareOutput,
             int framerate,
-            int waitTimeout
+            int waitTimeout,
+            bool overflowPreventing
             )
         {
             _imageSource = imageSource;
@@ -39,6 +40,7 @@ namespace FT2232ImageOutput.MainProcessors
             _hardwareOutput = hardwareOutput;
             _framerate = framerate;
             _waitTimeout = waitTimeout;
+            _overflowPreventing = overflowPreventing;
             _frameDrawnSemaphore = new SemaphoreSlim(1, 1);
             _frameBufUpdateSemaphore = new SemaphoreSlim(1, 1);
         }
@@ -93,7 +95,8 @@ namespace FT2232ImageOutput.MainProcessors
 
                                 dataStream.Write(bits, 0, bits.Length);
 
-                                if ((dataStream.Length + _bitMapper.MaxBytesPerPoint * 2) > _hardwareOutput.MaxBytes)
+                                if (_overflowPreventing && 
+                                    (dataStream.Length + _bitMapper.MaxBytesPerPoint * 2) > _hardwareOutput.MaxBytes)
                                 {
                                     var blankedPoint = point.Clone();
                                     blankedPoint.Blanking = true;
@@ -168,7 +171,7 @@ namespace FT2232ImageOutput.MainProcessors
                     var frameBytes = _frameBuf;
 
                     foreach(var fb in frameBytes)
-                        _hardwareOutput.Output(fb, true);
+                        _hardwareOutput.Output(fb, _overflowPreventing);
 
                     _frameBufUpdateSemaphore.Release();
 
