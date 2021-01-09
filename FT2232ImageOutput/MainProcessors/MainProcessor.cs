@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -16,12 +17,11 @@ namespace FT2232ImageOutput.MainProcessors
         private readonly IPointBitMapper _bitMapper;
         private readonly IHardwareOutput _hardwareOutput;
 
-        private readonly int _framerate;
-        private readonly int _waitTimeout;
+        private readonly int _frameInterval;
         private readonly bool _overflowPreventing;
-        byte[][] _frameBuf = new byte[0][];
-        SemaphoreSlim _frameDrawnSemaphore;
-        SemaphoreSlim _frameBufUpdateSemaphore;
+
+        ConcurrentQueue<byte[][]> _bufQueue = new ConcurrentQueue<byte[][]>();
+        int _bufQueueMax = 2;
 
         
         public MainProcessor(
@@ -29,8 +29,7 @@ namespace FT2232ImageOutput.MainProcessors
             IEnumerable<IFrameProcessor> frameProcessors,
             IPointBitMapper bitMapper,
             IHardwareOutput hardwareOutput,
-            int framerate,
-            int waitTimeout,
+            int frameInterval,
             bool overflowPreventing
             )
         {
@@ -38,11 +37,8 @@ namespace FT2232ImageOutput.MainProcessors
             _frameProcessors = frameProcessors;
             _bitMapper = bitMapper;
             _hardwareOutput = hardwareOutput;
-            _framerate = framerate;
-            _waitTimeout = waitTimeout;
+            _frameInterval = frameInterval;
             _overflowPreventing = overflowPreventing;
-            _frameDrawnSemaphore = new SemaphoreSlim(1, 1);
-            _frameBufUpdateSemaphore = new SemaphoreSlim(1, 1);
         }
 
 
@@ -55,8 +51,6 @@ namespace FT2232ImageOutput.MainProcessors
 
         Task FrameReadAndProcess()
         {
-            int frameInterval = (int) Math.Floor(1000.0 / _framerate);
-
             try
             {
                 var frames = _imageSource.GetFrames();
@@ -81,6 +75,8 @@ namespace FT2232ImageOutput.MainProcessors
 
 
                         sw.Start();
+
+                        int sleepOverhead = 0;
 
                         foreach (var frame in processedFrames) //.Where(p => p.Points.Any()))
                         {
@@ -117,22 +113,33 @@ namespace FT2232ImageOutput.MainProcessors
                             frameBytes.Add(dataStream.ToArray());
                             dataStream.SetLength(0);
 
-                            var b = _frameDrawnSemaphore.Wait(_waitTimeout);
-                            Debug.Assert(b); // trying to catch a deadlock. maybe already fixed.
-                            b = _frameBufUpdateSemaphore.Wait(_waitTimeout);
-                            Debug.Assert(b);
-                            _frameBuf = frameBytes.ToArray();
-                            _frameBufUpdateSemaphore.Release();
+
+                            while (true)
+                            {
+                                if (_bufQueue.Count() < _bufQueueMax)
+                                    break;
+
+                                Thread.Yield();
+                            }
+
+                            _bufQueue.Enqueue(frameBytes.ToArray());
 
                             dataStream.SetLength(0);
 
                             sw.Stop();
 
-                            var restInterval = frameInterval - sw.ElapsedMilliseconds;
-
+                            var restInterval = _frameInterval - sw.ElapsedMilliseconds - sleepOverhead;
 
                             if (restInterval > 0)
+                            {
+                                sw.Reset();
+                                sw.Start();
                                 Thread.Sleep((int)restInterval);
+                                sw.Stop();
+
+                                sleepOverhead = (int)(sw.ElapsedMilliseconds - restInterval);
+                            }
+
                         }
 
                         sw.Reset();
@@ -161,22 +168,26 @@ namespace FT2232ImageOutput.MainProcessors
         {
             try
             {
+
+                byte[][] frameBytes = null;
+
                 while (true)
                 {
 
-                    var b = _frameBufUpdateSemaphore.Wait(_waitTimeout);
-                    Debug.Assert(b);
+                    if (_bufQueue.TryDequeue(out var newFrameBytes))
+                    {
+                        frameBytes = newFrameBytes;
+                    }
 
-
-                    var frameBytes = _frameBuf;
-
-                    foreach(var fb in frameBytes)
-                        _hardwareOutput.Output(fb, _overflowPreventing);
-
-                    _frameBufUpdateSemaphore.Release();
-
-                    if (_frameDrawnSemaphore.CurrentCount == 0)
-                        _frameDrawnSemaphore.Release();
+                    if (frameBytes?.Any() ?? false)
+                    {
+                        foreach (var fb in frameBytes.Where(b => b?.Any() ?? false))
+                            _hardwareOutput.Output(fb, _overflowPreventing);
+                    }
+                    else 
+                    {
+                        Thread.Yield();
+                    }
 
                 }
             }
