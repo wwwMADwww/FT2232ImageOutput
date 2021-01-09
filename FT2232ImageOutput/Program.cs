@@ -176,6 +176,7 @@ namespace FT2232ImageOutput
             // var pointBitMapper = new Mcp4921PointBitMapper(true);
 
             var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointBitMapper);
+            // var hardwareOutput = new StubHardwareOutput(1024, 4096, 1);
 
 
             var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 2000, 10000, true);
