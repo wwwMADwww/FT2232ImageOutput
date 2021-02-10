@@ -11,6 +11,9 @@ using FT2232ImageOutput.FrameProcessors;
 using FT2232ImageOutput.HardwareOutput;
 using FT2232ImageOutput.ImageSources;
 using FT2232ImageOutput.MainProcessors;
+using FT2232ImageOutput.PathImages;
+using FT2232ImageOutput.PathImages.FillGenerators;
+using FT2232ImageOutput.PathImages.ImageSources;
 using FT2232ImageOutput.PointBitMappers;
 
 namespace FT2232ImageOutput
@@ -34,22 +37,22 @@ namespace FT2232ImageOutput
 
             // TODO: config file for building and configure everything
 
-            var targetMaxValues = new ImageMaxValues() 
-            {
-                MaxRGB = 255,
-                MinX = 0, MaxX = 1023,
-                MinY = 0, MaxY = 1023,
-                MinZ = 0, MaxZ = 15,
-            };
-
-            
             // var targetMaxValues = new ImageMaxValues() 
             // {
             //     MaxRGB = 255,
-            //     MinX = 0, MaxX = 4095,
-            //     MinY = 0, MaxY = 4095,
-            //     MinZ = 0, MaxZ = 4095,
+            //     MinX = 0, MaxX = 1023,
+            //     MinY = 0, MaxY = 1023,
+            //     MinZ = 0, MaxZ = 15,
             // };
+
+            
+            var targetMaxValues = new ImageMaxValues() 
+            {
+                MaxRGB = 255,
+                MinX = 0, MaxX = 4095,
+                MinY = 0, MaxY = 4095,
+                MinZ = 0, MaxZ = 4095,
+            };
 
             int genOffsetX = 0; // 32 * 0 - 1;
             int genOffsetY = 0;
@@ -61,7 +64,7 @@ namespace FT2232ImageOutput
             //     MinY = genOffsetY, MaxY = 1023 + genOffsetY,
             //     MinZ = 0, MaxZ = 15,
             // };
-            
+
             // var generateMaxValues = new ImageMaxValues() 
             // {
             //     MaxRGB = 255,
@@ -95,7 +98,7 @@ namespace FT2232ImageOutput
             //       44100      70550
             // var imageSource = new WaveFileImageSource(filepath);
 
-            var imageSource = new IldaImageSource(filepath);
+            // var imageSource = new IldaImageSource(filepath);
             // var imageSource = new IldaMultipleImageSource(ildafiles);
             // var imageSource = new TestLineImageSource(targetMaxValues, generateMaxValues, true);
             // var imageSource = new SolidRectangleImageSource(generateMaxValues);
@@ -132,6 +135,26 @@ namespace FT2232ImageOutput
             //     }
             // ); ;
 
+
+            var svgImageSource = new SvgFilePathSource(filepath);
+
+            // var pathFillGenerator = new EmptyFillGenerator();
+            var pathFillGenerator = new IntervalDotsFillGenerator(30, 150, true, true);
+            // var pathFillGenerator = new RandomDotsFillGenerator(550, false, true);
+
+            var pathToPointImageSourceParams = new PathToPointImageSourceParams()
+            {
+
+                DotImageDistanceMin = 20f,
+                DotImageDistanceMax = 21f,
+
+                FillDistanceMin = 50f,
+                FillDistanceMax = 55f
+            };
+
+            var imageSource = new PathToPointImageSource(svgImageSource.ReadSvg(), pathFillGenerator, targetMaxValues, pathToPointImageSourceParams);
+
+
             var frameProcessors = new List<IFrameProcessor>() {
 
                 new ScaleMaxValuesFrameProcessor(imageSource.MaxValues, targetMaxValues),
@@ -144,7 +167,7 @@ namespace FT2232ImageOutput
                 
                 // new RotateFrameProcessor(targetMaxValues, 90, null, 0.1f, 0),
 
-                // new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
+                new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
 
                 // new DuplicatePointsFrameProcessor(10, 10f),
 
@@ -168,12 +191,12 @@ namespace FT2232ImageOutput
 
             };
 
-            var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3, false);
-            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2, false);
-            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8, false);
+            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3);
+            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2);
+            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8);
             // var pointBitMapper = new DirectPointBitMapper();
 
-            // var pointBitMapper = new Mcp4921PointBitMapper(true, false);
+            var pointBitMapper = new Mcp4921PointBitMapper(true, false, false);
 
             var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate);
             // var hardwareOutput = new StubHardwareOutput(1024, 4096, 1);
