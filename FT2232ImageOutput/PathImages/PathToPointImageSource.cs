@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FT2232ImageOutput.Utils;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -96,16 +97,17 @@ namespace FT2232ImageOutput.PathImages
                     Blanking = false,
                     X = (int) p.Pos.X,
                     Y = (int) p.Pos.Y,
-                    Z = ei.StrokeColor.A,
+                    Z = MathUtils.ConvertRange(0, 255, MaxValues.MinZ, MaxValues.MaxZ, ei.StrokeColor.A),
                     R = ei.StrokeColor.R,
                     G = ei.StrokeColor.G,
                     B = ei.StrokeColor.B
                 }));
+
+                var lastpoint = points.Last();//.Clone();
+                lastpoint.Blanking = true;
+                points.Add(lastpoint);
             }
 
-            var lastpoint = points.Last().Clone();
-            lastpoint.Blanking = true;
-            points.Add(lastpoint);
 
             foreach (var ei in segFillImage)
             {
@@ -128,13 +130,13 @@ namespace FT2232ImageOutput.PathImages
                     Blanking = false,
                     X = (int)p.Pos.X,
                     Y = (int)p.Pos.Y,
-                    Z = ei.StrokeColor.A,
-                    R = ei.StrokeColor.R,
-                    G = ei.StrokeColor.G,
-                    B = ei.StrokeColor.B
+                    Z = MathUtils.ConvertRange(0, 255, MaxValues.MinZ, MaxValues.MaxZ, ei.FillColor.A),
+                    R = ei.FillColor.R,
+                    G = ei.FillColor.G,
+                    B = ei.FillColor.B
                 }));
 
-                lastpoint = points.Last().Clone();
+                var lastpoint = points.Last().Clone();
                 lastpoint.Blanking = true;
                 points.Add(lastpoint);
 

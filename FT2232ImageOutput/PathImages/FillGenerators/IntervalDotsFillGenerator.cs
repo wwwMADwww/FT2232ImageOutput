@@ -11,12 +11,14 @@ namespace FT2232ImageOutput.PathImages.FillGenerators
         private readonly int _intervalMin;
         private readonly int _intervalMax;
         private readonly bool _randomShift;
+        private readonly bool _invert;
 
-        public IntervalDotsFillGenerator(int intervalMin, int intervalMax, bool randomShift)
+        public IntervalDotsFillGenerator(int intervalMin, int intervalMax, bool invert, bool randomShift)
         {
             _intervalMin = intervalMin;
             _intervalMax = intervalMax;
             _randomShift = randomShift;
+            _invert = invert;
         }
 
 
@@ -29,7 +31,11 @@ namespace FT2232ImageOutput.PathImages.FillGenerators
 
             var random = new Random();
 
-            var interval = (int)(_intervalMin + (_intervalMax - ((_intervalMax - _intervalMin) * (filledPoly.FillColor.A / 255f))));
+            var intensity = _invert
+                ? 255 - filledPoly.FillColor.A
+                : filledPoly.FillColor.A;
+
+            var interval = (int)(_intervalMin + (_intervalMax - ((_intervalMax - _intervalMin) * (intensity / 255f))));
 
             for (var x = filledPoly.Bounds.Left; x < filledPoly.Bounds.Right; x += interval)
             {
@@ -55,7 +61,7 @@ namespace FT2232ImageOutput.PathImages.FillGenerators
             {
                 Bounds = filledPoly.Bounds,
                 HasStroke = true,
-                StrokeColor = filledPoly.StrokeColor,
+                StrokeColor = filledPoly.FillColor,
                 Path = res.Select(v => new Dot(v)).ToArray()
             };
 
