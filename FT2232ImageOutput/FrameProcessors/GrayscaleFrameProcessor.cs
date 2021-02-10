@@ -11,11 +11,13 @@ namespace FT2232ImageOutput.FrameProcessors
     {
         private readonly ImageMaxValues _maxValues;
         private readonly GrayscaleFrameProcessorMapMode _mapMode;
+        private readonly bool _invertResult;
 
-        public GrayscaleFrameProcessor(ImageMaxValues maxValues, GrayscaleFrameProcessorMapMode mapMode)
+        public GrayscaleFrameProcessor(ImageMaxValues maxValues, GrayscaleFrameProcessorMapMode mapMode, bool invertResult)
         {
             _maxValues = maxValues;
             _mapMode = mapMode;
+            _invertResult = invertResult;
         }
 
 
@@ -46,6 +48,9 @@ namespace FT2232ImageOutput.FrameProcessors
 
                 // almost fisrt from google
                 int gray = (int)(.21 * point.R + .71 * point.G + .071 * point.B);
+
+                if (_invertResult)
+                    gray = _maxValues.MaxRGB - gray;
 
                 var newPoint = point.Clone();
 

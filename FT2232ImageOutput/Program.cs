@@ -168,18 +168,18 @@ namespace FT2232ImageOutput
 
             };
 
-            var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3);
-            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2);
-            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8);
+            var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3, false);
+            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2, false);
+            // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8, false);
             // var pointBitMapper = new DirectPointBitMapper();
 
-            // var pointBitMapper = new Mcp4921PointBitMapper(true);
+            // var pointBitMapper = new Mcp4921PointBitMapper(true, false);
 
-            var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate, pointBitMapper);
+            var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate);
             // var hardwareOutput = new StubHardwareOutput(1024, 4096, 1);
 
 
-            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 2000, 10000, true);
+            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 0, true);
 
             mainProcess.Start();
 

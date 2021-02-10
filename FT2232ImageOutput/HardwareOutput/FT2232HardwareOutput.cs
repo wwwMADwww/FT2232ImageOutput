@@ -15,7 +15,6 @@ namespace FT2232ImageOutput.HardwareOutput
     {
         protected readonly string _channelName;
         protected readonly uint _baudrate;
-        protected readonly IPointBitMapper _pointBitMapper;
         protected int _bufferSize = 4096;
         protected TimeSpan _maxSequentialIoErrorsTime = TimeSpan.FromSeconds(3);
 
@@ -23,11 +22,10 @@ namespace FT2232ImageOutput.HardwareOutput
 
         protected DateTime _sequentialIoErrorsTimeStart = default;
 
-        public FT2232HardwareOutput(string channelName, uint baudrate, IPointBitMapper pointBitMapper)
+        public FT2232HardwareOutput(string channelName, uint baudrate)
         {
             _channelName = channelName;
             _baudrate = baudrate;
-            _pointBitMapper = pointBitMapper;
 
             _channel = OpenChannel(_channelName, _baudrate);
         }

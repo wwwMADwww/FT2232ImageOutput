@@ -30,10 +30,19 @@ namespace FT2232ImageOutput.PointBitMappers
     public class ShiftRegisterPointBitMapper : IPointBitMapper
     {
         private readonly ShiftRegisterPointBitMapperMode _mode;
+        private readonly bool _invertBlanking;
+        byte _blankingValue8 = 0xFF;
+        byte _blankingValue4 = 0b1111;
 
-        public ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode mode)
+        public ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode mode, bool invertBlanking)
         {
             _mode = mode;
+            _invertBlanking = invertBlanking;
+            if (_invertBlanking)
+            {
+                _blankingValue8 = 0;
+                _blankingValue4 = 0;
+            }
         }
 
         public byte[] Map(ImagePoint point)
@@ -90,7 +99,7 @@ namespace FT2232ImageOutput.PointBitMappers
 
             values[pinDataX] = (byte)(point.X & 0xFF);
             values[pinDataY] = (byte)(point.Y & 0xFF);
-            values[pinDataZ] = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
+            values[pinDataZ] = (byte)(point.Blanking ? _blankingValue8 : ((point.Z ^ 0xFF) & 0xFF));
 
 
             var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore, false);
@@ -119,7 +128,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX1Y2Z] = (byte)(
                 ((point.X >> 8) & 0b11) |
                 (((point.Y >> 8) & 0b11) << 2) |
-                ((point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111)) << 4)
+                ((point.Blanking ? _blankingValue4 : ((point.Z ^ 0b1111) & 0b1111)) << 4)
                 );
 
 
@@ -149,7 +158,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX1Y2Z] = (byte) (
                 (point.X & 0b11) | 
                 ((point.Y & 0b11) << 2) | 
-                ((point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111)) << 4)
+                ((point.Blanking ? _blankingValue4 : ((point.Z ^ 0b1111) & 0b1111)) << 4)
                 );
 
 
@@ -181,7 +190,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataY1] = (byte)(point.Y & 0b1111);
             values[pinDataY2] = (byte)((point.Y >> 4) & 0b1111);
             values[pinDataX3Y3] = (byte)(((point.X >> 8) & 0b11) | (((point.Y >> 8) & 0b11) << 2));
-            values[pinDataZ] = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
+            values[pinDataZ] = (byte)(point.Blanking ? _blankingValue4 : ((point.Z ^ 0b1111) & 0b1111));
             
             var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore, false);
 
@@ -210,7 +219,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX3] = (byte)((point.X >> 6) & 0b1111);
             values[pinDataY2] = (byte)((point.Y >> 2) & 0b1111);
             values[pinDataY3] = (byte)((point.Y >> 6) & 0b1111);
-            values[pinDataZ] = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
+            values[pinDataZ] = (byte)(point.Blanking ? _blankingValue4 : ((point.Z ^ 0b1111) & 0b1111));
             
             var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore, false);
 
@@ -239,7 +248,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX1Y1] = (byte)(((point.Y & 0b11) << 2) | (point.X & 0b11));
             values[pinDataY2] = (byte)((point.Y >> 2) & 0b1111);
             values[pinDataY3] = (byte)((point.Y >> 6) & 0b1111);
-            values[pinDataZ] = (byte)(point.Blanking ? 0b1111 : ((point.Z ^ 0b1111) & 0b1111));
+            values[pinDataZ] = (byte)(point.Blanking ? _blankingValue4 : ((point.Z ^ 0b1111) & 0b1111));
 
             var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore, false);
 
@@ -266,7 +275,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX2] = (byte)((point.X >> 8) & 0xFF);
             values[pinDataY1] = (byte)(point.Y & 0xFF);
             values[pinDataY2] = (byte)((point.Y >> 8) & 0xFF);
-            values[pinDataZ ] = (byte)(point.Blanking ? 0xFF : ((point.Z ^ 0xFF) & 0xFF));
+            values[pinDataZ ] = (byte)(point.Blanking ? _blankingValue8 : ((point.Z ^ 0xFF) & 0xFF));
 
             var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore, false);
 

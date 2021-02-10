@@ -13,15 +13,16 @@ namespace FT2232ImageOutput.PointBitMappers
     {
         private readonly bool _analogZ;
         private readonly bool _manualDataClock;
-
+        private readonly bool _invertBlanking;
         const int _packetMask = 0b1111111111111111;
         const int _dataMask = 0b0000111111111111;
         const int _configuration = 0b0111000000000000;
 
-        public Mcp4921PointBitMapper(bool analogZ, bool manualDataClock)
+        public Mcp4921PointBitMapper(bool analogZ, bool manualDataClock, bool invertBlanking)
         {
             _analogZ = analogZ;
             _manualDataClock = manualDataClock;
+            _invertBlanking = invertBlanking;
         }
 
 
@@ -47,7 +48,7 @@ namespace FT2232ImageOutput.PointBitMappers
 
             if (_analogZ)
                 values[pinDataZ] = _configuration | (point.Blanking 
-                    ? _dataMask 
+                    ? (_invertBlanking ? 0 : _dataMask)
                     : (point.Z & _dataMask));
             else
                 values[pinDataZ] = point.Blanking ? _packetMask : 0;
