@@ -22,18 +22,19 @@ namespace FT2232ImageOutput
     {
         static int Main(string[] args)
         {
+            // uint baudrate = 3_000_000; // MCP4921 absolute max data speed
+            // uint baudrate = 3_000_000; // MCP4921 0-255 (8 bit). square wave 440khz (880k points/s). wave shape is heavy filtered triangle
+            uint baudrate = 2_000_000; // MCP4921 0-1023 (10 bit). square wave 320khz (640k points/s). wave shape has triangle top, flat bottom
+            // uint baudrate = 1_000_000; // most stable, minimum data stream tearing
+            // uint baudrate =   610_000; // MCP4921 0-4095 (12 bit). square wave 90khz (180k points/s). wave shape is triangle
 
-            var paramsParsed = CommandLineParamsProcessor.Process(args, out var options);
 
-            if (!paramsParsed)
-            {
-                return 1;
-            }
+            var filepath = @"..\..\..\samplefiles\svg\circle.svg";
 
-            var filepath = Path.GetFullPath(options.Filepath);
+
 
             Console.WriteLine($"Filename is {filepath}");
-            Console.WriteLine($"Baudrate is {options.Baudrate}");
+            Console.WriteLine($"Baudrate is {baudrate}");
 
             // TODO: config file for building and configure everything
 
@@ -49,10 +50,18 @@ namespace FT2232ImageOutput
             var targetMaxValues = new ImageMaxValues() 
             {
                 MaxRGB = 255,
-                MinX = 0, MaxX = 4095,
-                MinY = 0, MaxY = 4095,
-                MinZ = 0, MaxZ = 4095,
+                MinX = 0, MaxX = 1023,
+                MinY = 0, MaxY = 1023,
+                MinZ = 0, MaxZ = 1023,
             };
+
+            //var targetMaxValues = new ImageMaxValues() 
+            //{
+            //    MaxRGB = 255,
+            //    MinX = 0, MaxX = 4095,
+            //    MinY = 0, MaxY = 4095,
+            //    MinZ = 10, MaxZ = 265,
+            //};
 
             int genOffsetX = 0; // 32 * 0 - 1;
             int genOffsetY = 0;
@@ -65,13 +74,13 @@ namespace FT2232ImageOutput
             //     MinZ = 0, MaxZ = 15,
             // };
 
-            // var generateMaxValues = new ImageMaxValues() 
-            // {
-            //     MaxRGB = 255,
-            //     MinX = genOffsetX, MaxX = 4095 + genOffsetX,
-            //     MinY = genOffsetY, MaxY = 4095 + genOffsetY,
-            //     MinZ = 0, MaxZ = 4095,
-            // };
+            var generateMaxValues = new ImageMaxValues() 
+            {
+                MaxRGB = 255,
+                MinX = genOffsetX, MaxX = 4095 + genOffsetX,
+                MinY = genOffsetY, MaxY = 4095 + genOffsetY,
+                MinZ = 0, MaxZ = 4095,
+            };
 
             // var generateMaxValues = new ImageMaxValues() 
             // {
@@ -105,7 +114,7 @@ namespace FT2232ImageOutput
             // var imageSource = new RandomImageSource(generateMaxValues);
             // var imageSource = new SpruceImageSource(targetMaxValues);
             // var imageSource = new MeandreImageSource(targetMaxValues);
-            // var imageSource = new TwoPointsImageSource(targetMaxValues, 1024);
+            var imageSource = new PointsImageSource(targetMaxValues, 10240);
 
 
             // var imageSource = new MatrixBootstrap().CrateMatrix(
@@ -139,7 +148,9 @@ namespace FT2232ImageOutput
             var svgImageSource = new SvgFilePathSource(filepath);
 
             // var pathFillGenerator = new EmptyFillGenerator();
-            var pathFillGenerator = new IntervalDotsFillGenerator(30, 150, true, true);
+            // var pathFillGenerator = new IntervalDotsFillGenerator(30, 150, true, false);
+            // var pathFillGenerator = new IntervalDotsFillGenerator(30, 31, true, false);
+            var pathFillGenerator = new IntervalDotsFillGenerator(10, 11, true, false);
             // var pathFillGenerator = new RandomDotsFillGenerator(550, false, true);
 
             var pathToPointImageSourceParams = new PathToPointImageSourceParams()
@@ -148,30 +159,30 @@ namespace FT2232ImageOutput
                 DotImageDistanceMin = 20f,
                 DotImageDistanceMax = 21f,
 
-                FillDistanceMin = 50f,
-                FillDistanceMax = 55f
+                FillDistanceMin = 80f,
+                FillDistanceMax = 85f
             };
 
-            var imageSource = new PathToPointImageSource(svgImageSource.ReadSvg(), pathFillGenerator, targetMaxValues, pathToPointImageSourceParams);
+            // var imageSource = new PathToPointImageSource(svgImageSource.ReadSvg(), pathFillGenerator, targetMaxValues, pathToPointImageSourceParams);
 
 
             var frameProcessors = new List<IFrameProcessor>() {
 
-                new ScaleMaxValuesFrameProcessor(imageSource.MaxValues, targetMaxValues),
+                //new ScaleMaxValuesFrameProcessor(imageSource.MaxValues, targetMaxValues),
 
-                // new MonochromeFrameProcessor(MonochromeFrameProcessorSourceColor.Green),
+                //new MonochromeFrameProcessor(MonochromeFrameProcessorSourceColor.Green),
 
-                // new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ),
+                //new GrayscaleFrameProcessor(targetMaxValues, GrayscaleFrameProcessorMapMode.CoordZ, true),
 
                 // new RotateFrameProcessor(targetMaxValues, 0, null, 0.1f, 25),
                 
                 // new RotateFrameProcessor(targetMaxValues, 90, null, 0.1f, 0),
 
-                new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
+                //new DuplicateReduceFrameProcessor(DuplicateReduceFrameProcessorFlags.All),
 
                 // new DuplicatePointsFrameProcessor(10, 10f),
 
-                // new AddBlankingPointsFrameProcessor(),
+                // new AddBlankingPointsFrameProcessor(10, 4, true),
 
 
                 // new SliceGlitchFrameProcessor(targetMaxValues, new SliceGlitchFrameProcessorSettings(){
@@ -198,7 +209,8 @@ namespace FT2232ImageOutput
 
             var pointBitMapper = new Mcp4921PointBitMapper(true, false, false);
 
-            var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate);
+            // var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate);
+            var hardwareOutput = new FT2232HardwareOutput("A", baudrate);
             // var hardwareOutput = new StubHardwareOutput(1024, 4096, 1);
 
 

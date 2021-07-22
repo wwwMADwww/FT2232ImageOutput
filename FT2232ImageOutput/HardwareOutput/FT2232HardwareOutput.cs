@@ -116,7 +116,13 @@ namespace FT2232ImageOutput.HardwareOutput
             
             // ON LINUX RUN APP WITH SUDO OR CONFIGURE ACCESS TO USB FTDI DEVICES
             Console.WriteLine($"getdevicelist status is {status}");
-            foreach(var device in devicelist.Where(x => x != null))
+
+            devicelist = devicelist.Where(x => x != null).ToArray();
+
+            if (!devicelist.Any())
+                throw new Exception("No FTDI devices found.");
+
+            foreach(var device in devicelist)
             {
                 Console.WriteLine($"Description is '{device.Description}'");
                 Console.WriteLine($"SerialNumber is '{device.SerialNumber}'");

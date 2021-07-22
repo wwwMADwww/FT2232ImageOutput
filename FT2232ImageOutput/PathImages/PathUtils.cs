@@ -141,7 +141,12 @@ namespace FT2232ImageOutput.PathImages
                 }
 
                 if (dots?.Any() ?? false)
+                {
+                    // var dotlist = dots.ToList();
+                    //dotlist.RemoveAt(dotlist.Count - 1);
+
                     dotPath.AddRange(dots);
+                }
             }
 
 

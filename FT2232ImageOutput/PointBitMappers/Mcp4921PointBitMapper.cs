@@ -14,9 +14,15 @@ namespace FT2232ImageOutput.PointBitMappers
         private readonly bool _analogZ;
         private readonly bool _manualDataClock;
         private readonly bool _invertBlanking;
+
+        const int configDacSelect = 1 << 15; // !A/B
+        const int configVrefBuf   = 1 << 14; // BUF
+        const int configOutGain   = 1 << 13; // !GA
+        const int configOutBuf    = 1 << 12; // !SHDN
+
         const int _packetMask = 0b1111111111111111;
-        const int _dataMask = 0b0000111111111111;
-        const int _configuration = 0b0111000000000000;
+        const int _dataMask   = 0b0000111111111111;
+        const int _configuration = configVrefBuf | configOutGain | configOutBuf;
 
         public Mcp4921PointBitMapper(bool analogZ, bool manualDataClock, bool invertBlanking)
         {
