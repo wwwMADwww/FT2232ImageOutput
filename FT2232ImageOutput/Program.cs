@@ -191,6 +191,10 @@ namespace FT2232ImageOutput
 
             var frameProcessors = new List<IFrameProcessor>() {
 
+                new GammaCorrectionFrameProcessor(new Dictionary<GammaCorrectionFrameProcessorChannel, float>{
+                    { GammaCorrectionFrameProcessorChannel.Z, 0.45f }
+                }, targetMaxValues)
+
                 //new ScaleMaxValuesFrameProcessor(imageSource.MaxValues, targetMaxValues),
 
                 //new MonochromeFrameProcessor(MonochromeFrameProcessorSourceColor.Green),
