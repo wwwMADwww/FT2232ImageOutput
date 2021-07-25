@@ -4,3 +4,6 @@
 [submodule "FTD2XX_DotNetCoreWrapper"]
 	path = FTD2XX_DotNetCoreWrapper
 	url = https://github.com/wwwMADwww/FTD2XX_DotNetCoreWrapper.git
+[submodule "ManuPathLib"]
+	path = ManuPathLib
+	url = https://github.com/wwwMADwww/ManuPathLib

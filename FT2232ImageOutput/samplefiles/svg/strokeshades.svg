@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="100mm"
+   height="100mm"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="strokeshades.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.4"
+     inkscape:cx="346.25287"
+     inkscape:cy="204.8641"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="1680"
+     inkscape:window-height="1027"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:snap-global="true" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     style="display:inline">
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 3.0735996,9.5736806 97.018837,3.2072348"
+       id="path831" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.9"
+       d="M 3.0735996,18.425491 97.018837,12.059044"
+       id="path833" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.8"
+       d="M 3.0735996,27.277296 97.018837,20.910851"
+       id="path835" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.7"
+       d="M 3.0735996,36.129107 97.018837,29.762661"
+       id="path837" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.6"
+       d="M 3.0735996,44.980916 97.018837,38.614471"
+       id="path839" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.5"
+       d="M 3.0735996,53.832725 97.018837,47.466279"
+       id="path841" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.4"
+       d="M 3.0735996,62.68453 97.018837,56.318084"
+       id="path843" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.3"
+       d="M 3.0735996,71.536337 97.018837,65.169892"
+       id="path845" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.2"
+       d="M 3.0735996,80.388151 97.018837,74.021705"
+       id="path847" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.1"
+       d="M 3.0735996,89.239956 97.018837,82.87351"
+       id="path849" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:0.25325px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0"
+       d="M 3.0735996,98.091774 97.018837,91.725325"
+       id="path851" />
+  </g>
+</svg>

@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CommandLine;
 using FT2232ImageOutput.FrameProcessors;
 using FT2232ImageOutput.HardwareOutput;
 using FT2232ImageOutput.ImageSources;
 using FT2232ImageOutput.MainProcessors;
 using FT2232ImageOutput.PathImages;
-using FT2232ImageOutput.PathImages.FillGenerators;
-using FT2232ImageOutput.PathImages.ImageSources;
+using FT2232ImageOutput.PathImages.PathSources;
 using FT2232ImageOutput.PointBitMappers;
+using ManuPath.FillGenerators;
+using ManuPath.PrimitiveConverters;
 
 namespace FT2232ImageOutput
 {
@@ -30,6 +31,8 @@ namespace FT2232ImageOutput
 
 
             var filepath = @"..\..\..\samplefiles\svg\circle.svg";
+            //var filepath = @"..\..\..\samplefiles\svg\strokeshades.svg";
+            //var filepath = @"..\..\..\samplefiles\svg\wikipedia_fillrules.svg";
 
 
 
@@ -38,30 +41,30 @@ namespace FT2232ImageOutput
 
             // TODO: config file for building and configure everything
 
-            // var targetMaxValues = new ImageMaxValues() 
-            // {
-            //     MaxRGB = 255,
-            //     MinX = 0, MaxX = 1023,
-            //     MinY = 0, MaxY = 1023,
-            //     MinZ = 0, MaxZ = 15,
-            // };
+             //var targetMaxValues = new ImageMaxValues() 
+             //{
+             //    MaxRGB = 255,
+             //    MinX = 0, MaxX = 255,
+             //    MinY = 0, MaxY = 255,
+             //    MinZ = 0, MaxZ = 255,
+             //};
 
             
-            var targetMaxValues = new ImageMaxValues() 
-            {
-                MaxRGB = 255,
-                MinX = 0, MaxX = 1023,
-                MinY = 0, MaxY = 1023,
-                MinZ = 0, MaxZ = 1023,
-            };
-
             //var targetMaxValues = new ImageMaxValues() 
             //{
             //    MaxRGB = 255,
-            //    MinX = 0, MaxX = 4095,
-            //    MinY = 0, MaxY = 4095,
-            //    MinZ = 10, MaxZ = 265,
+            //    MinX = 0, MaxX = 1023,
+            //    MinY = 0, MaxY = 1023,
+            //    MinZ = 0, MaxZ = 1023,
             //};
+
+            var targetMaxValues = new ImageMaxValues() 
+            {
+                MaxRGB = 255,
+                MinX = 0, MaxX = 4095,
+                MinY = 0, MaxY = 4095,
+                MinZ = 0, MaxZ = 4095,
+            };
 
             int genOffsetX = 0; // 32 * 0 - 1;
             int genOffsetY = 0;
@@ -98,6 +101,17 @@ namespace FT2232ImageOutput
             //     MinZ = 0, MaxZ = 255,
             // };
 
+
+
+            var screenSize = new Vector2(8 * 12, 8 * 12);
+
+            var pixelSize = new Vector2(
+                (targetMaxValues.MaxX - targetMaxValues.MinX) / screenSize.X,
+                (targetMaxValues.MaxY - targetMaxValues.MinY) / screenSize.Y
+                );
+            var pixelMin = Math.Min(pixelSize.X, pixelSize.Y);
+
+
             // List<string> ildafiles = new List<string>();
 
             // sample rate | baudrate
@@ -114,7 +128,7 @@ namespace FT2232ImageOutput
             // var imageSource = new RandomImageSource(generateMaxValues);
             // var imageSource = new SpruceImageSource(targetMaxValues);
             // var imageSource = new MeandreImageSource(targetMaxValues);
-            var imageSource = new PointsImageSource(targetMaxValues, 10240);
+            // var imageSource = new PointsImageSource(targetMaxValues, 10240);
 
 
             // var imageSource = new MatrixBootstrap().CrateMatrix(
@@ -145,25 +159,34 @@ namespace FT2232ImageOutput
             // ); ;
 
 
-            var svgImageSource = new SvgFilePathSource(filepath);
+            // var pathImageSourceParams = new PathToPointImageSourceParams()
+            // {
+            // 
+            //     DotImageDistanceMin = 20f,
+            //     DotImageDistanceMax = 21f,
+            // 
+            //     FillDistanceMin = 80f,
+            //     FillDistanceMax = 85f
+            // };
 
-            // var pathFillGenerator = new EmptyFillGenerator();
-            // var pathFillGenerator = new IntervalDotsFillGenerator(30, 150, true, false);
-            // var pathFillGenerator = new IntervalDotsFillGenerator(30, 31, true, false);
-            var pathFillGenerator = new IntervalDotsFillGenerator(10, 11, true, false);
-            // var pathFillGenerator = new RandomDotsFillGenerator(550, false, true);
 
-            var pathToPointImageSourceParams = new PathToPointImageSourceParams()
-            {
+            var imageSource = new PathImageSource(
+                pathSource: new SvgFilePathSource(filepath),
 
-                DotImageDistanceMin = 20f,
-                DotImageDistanceMax = 21f,
+                strokeConverter: new PrimitiveToEvenSegmentsConverter(pixelMin * 0.2f, pixelMin * 0.2f + 1, false),
+                strokeBrightness: ColorChannel.Alpha,
 
-                FillDistanceMin = 80f,
-                FillDistanceMax = 85f
-            };
+                fillConverter: null,
+                fillGeneratorFactory: p => new IntervalDotsFillGenerator(p,
+                    new Vector2(0.2f, 0.2f) * pixelSize,
+                    new Vector2(2f, 2f) * pixelSize
+                    , new Vector2(2f, 2f) * pixelSize
+                    ),
+                fillIntensity: ColorChannel.Green, 
+                fillBrightness: ColorChannel.Alpha,
 
-            // var imageSource = new PathToPointImageSource(svgImageSource.ReadSvg(), pathFillGenerator, targetMaxValues, pathToPointImageSourceParams);
+                targetMaxValues
+            );
 
 
             var frameProcessors = new List<IFrameProcessor>() {
@@ -207,10 +230,13 @@ namespace FT2232ImageOutput
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8);
             // var pointBitMapper = new DirectPointBitMapper();
 
-            var pointBitMapper = new Mcp4921PointBitMapper(true, false, false);
+            var pointBitMapper = new Mcp4921PointBitMapper(true, false, true, targetMaxValues);
 
-            // var hardwareOutput = new FT2232HardwareOutput("A", options.Baudrate);
-            var hardwareOutput = new FT2232HardwareOutput("A", baudrate);
+            var hardwareOutput = new FT2232HardwareOutput("A", baudrate,
+                4096
+                //8192
+                //10240
+                );
             // var hardwareOutput = new StubHardwareOutput(1024, 4096, 1);
 
 

@@ -14,6 +14,7 @@ namespace FT2232ImageOutput.PointBitMappers
         private readonly bool _analogZ;
         private readonly bool _manualDataClock;
         private readonly bool _invertBlanking;
+        private readonly ImageMaxValues _maxValues;
 
         const int configDacSelect = 1 << 15; // !A/B
         const int configVrefBuf   = 1 << 14; // BUF
@@ -24,11 +25,12 @@ namespace FT2232ImageOutput.PointBitMappers
         const int _dataMask   = 0b0000111111111111;
         const int _configuration = configVrefBuf | configOutGain | configOutBuf;
 
-        public Mcp4921PointBitMapper(bool analogZ, bool manualDataClock, bool invertBlanking)
+        public Mcp4921PointBitMapper(bool analogZ, bool manualDataClock, bool invertBlanking, ImageMaxValues maxValues)
         {
             _analogZ = analogZ;
             _manualDataClock = manualDataClock;
             _invertBlanking = invertBlanking;
+            _maxValues = maxValues;
         }
 
 
@@ -54,7 +56,7 @@ namespace FT2232ImageOutput.PointBitMappers
 
             if (_analogZ)
                 values[pinDataZ] = _configuration | (point.Blanking 
-                    ? (_invertBlanking ? 0 : _dataMask)
+                    ? (_invertBlanking ? (_dataMask & _maxValues.MinZ) : (_dataMask & _maxValues.MaxZ))
                     : (point.Z & _dataMask));
             else
                 values[pinDataZ] = point.Blanking ? _packetMask : 0;

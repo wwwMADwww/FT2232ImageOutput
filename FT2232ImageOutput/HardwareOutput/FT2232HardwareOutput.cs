@@ -15,18 +15,18 @@ namespace FT2232ImageOutput.HardwareOutput
     {
         protected readonly string _channelName;
         protected readonly uint _baudrate;
-        protected int _bufferSize = 4096;
+        protected int _bufferSize;
         protected TimeSpan _maxSequentialIoErrorsTime = TimeSpan.FromSeconds(3);
 
         protected FTDI _channel;
 
         protected DateTime _sequentialIoErrorsTimeStart = default;
 
-        public FT2232HardwareOutput(string channelName, uint baudrate)
+        public FT2232HardwareOutput(string channelName, uint baudrate, int bufferSize = 10240)
         {
             _channelName = channelName;
             _baudrate = baudrate;
-
+            _bufferSize = bufferSize;
             _channel = OpenChannel(_channelName, _baudrate);
         }
 
@@ -132,7 +132,12 @@ namespace FT2232ImageOutput.HardwareOutput
                 Console.WriteLine($"------");
             }
 
+
             status = res.OpenBySerialNumber(channelName);
+            Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
+
+            res.ResetDevice();
+            Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
 
             // for (int i = 0; i < 60; i++)
             // {

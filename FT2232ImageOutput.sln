@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DSS.ILDA", "DSS.ILDA\DSS.IL
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FTD2XX_DotNetCoreWrapper", "FTD2XX_DotNetCoreWrapper\FTD2XX_DotNetCoreWrapper\FTD2XX_DotNetCoreWrapper.csproj", "{1D63D4EB-93E5-487D-BC11-2DA835A0FFEE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManuPathLib", "ManuPathLib\ManuPathLib\ManuPathLib.csproj", "{FA3C6D2C-4672-4645-AFCA-E129D1E1111B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{1D63D4EB-93E5-487D-BC11-2DA835A0FFEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D63D4EB-93E5-487D-BC11-2DA835A0FFEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D63D4EB-93E5-487D-BC11-2DA835A0FFEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA3C6D2C-4672-4645-AFCA-E129D1E1111B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA3C6D2C-4672-4645-AFCA-E129D1E1111B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA3C6D2C-4672-4645-AFCA-E129D1E1111B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA3C6D2C-4672-4645-AFCA-E129D1E1111B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
