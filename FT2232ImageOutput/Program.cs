@@ -173,27 +173,28 @@ namespace FT2232ImageOutput
             var imageSource = new PathImageSource(
                 pathSource: new SvgFilePathSource(filepath),
 
-                strokeConverter: new PrimitiveToEvenSegmentsConverter(pixelMin * 0.2f, pixelMin * 0.2f + 1, false),
+                strokeConverter: new PrimitiveToEvenSegmentsConverter(pixelMin * 0.3f, pixelMin * 0.3f + 1, false),
                 strokeBrightness: ColorChannel.Alpha,
 
                 fillConverter: null,
                 fillGeneratorFactory: p => new IntervalDotsFillGenerator(p,
-                    new Vector2(0.2f, 0.2f) * pixelSize,
-                    new Vector2(2f, 2f) * pixelSize
-                    , new Vector2(2f, 2f) * pixelSize
+                    new Vector2(1f, 1f) * pixelSize,
+                    new Vector2(0.2f, 0.2f) * pixelSize
+                    , new Vector2(1f, 1f) * pixelSize
+                    , new Vector2(0.2f, 0.2f) * pixelSize
                     ),
-                fillIntensity: ColorChannel.Green, 
-                fillBrightness: ColorChannel.Alpha,
+                fillIntensity: ColorChannel.Alpha, 
+                fillBrightness: ColorChannel.Green,
 
                 targetMaxValues
-            );
+            ); 
 
 
             var frameProcessors = new List<IFrameProcessor>() {
 
-                new GammaCorrectionFrameProcessor(new Dictionary<GammaCorrectionFrameProcessorChannel, float>{
-                    { GammaCorrectionFrameProcessorChannel.Z, 0.45f }
-                }, targetMaxValues)
+                // new GammaCorrectionFrameProcessor(new Dictionary<GammaCorrectionFrameProcessorChannel, float>{
+                //     { GammaCorrectionFrameProcessorChannel.Z, 1f } //0.45f }
+                // }, targetMaxValues)
 
                 //new ScaleMaxValuesFrameProcessor(imageSource.MaxValues, targetMaxValues),
 
