@@ -14,6 +14,8 @@ namespace FT2232ImageOutput.PathImages
 
         Vector2 Size { get; }
 
+        bool Streaming { get; }
+
     }
 
 

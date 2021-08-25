@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FT2232ImageOutput.Utils;
 
 namespace FT2232ImageOutput.FrameProcessors
 {
 
     public class SliceGlitchFrameProcessorSettings
-    { 
-        public bool LoopFrame { get; set; }
+    {
+        // carry points to the opposite side if they moved out of frame
+        public bool CarryPoints { get; set; }
 
         public float DriftProbability { get; set; }
 
-        public float DriftMin { get; set; }
-        public float DriftMax { get; set; }
+        public int DriftMin { get; set; }
+        public int DriftMax { get; set; }
 
         public TimeSpan UpdateIntervalMin { get; set; }
         public TimeSpan UpdateIntervalMax { get; set; }
@@ -23,60 +24,45 @@ namespace FT2232ImageOutput.FrameProcessors
         public int SliceCountMin { get; set; }
         public int SliceCountMax { get; set; }
 
-        public float SliceHeightMin { get; set; }
-        public float SliceHeightMax { get; set; }
+        public int SliceHeightMin { get; set; }
+        public int SliceHeightMax { get; set; }
 
-        public float ShiftMin { get; set; }
-        public float ShiftMax { get; set; }
+        public int ShiftMin { get; set; }
+        public int ShiftMax { get; set; }
     }
-
-
-
 
 
     public class SliceGlitchFrameProcessor : IFrameProcessor
     {
         private readonly ImageMaxValues _maxValues;
-        // private readonly Timer _timer;
         private readonly SliceGlitchFrameProcessorSettings _settings;
-        private readonly SliceGlitchFrameProcessorAbsoluteValues _abs;
+        private readonly IEnumerable<SliceArea> _areas;
+
+        private readonly Random _random = new Random((int)DateTime.Now.Ticks);
 
         private readonly Task _updateTask;
 
-        ReaderWriterLockSlim _slicesLock = new ReaderWriterLockSlim();
-        private List<Slice> _slices = new List<Slice>(); 
+        private readonly bool _randomSlices;
+        private readonly ReaderWriterLockSlim _slicesLock = new ReaderWriterLockSlim();
+        private List<Slice> _slices = new List<Slice>();
 
-        public SliceGlitchFrameProcessor(ImageMaxValues maxValues, SliceGlitchFrameProcessorSettings settings)
+        public SliceGlitchFrameProcessor(
+            ImageMaxValues maxValues, 
+            SliceGlitchFrameProcessorSettings settings,
+            IEnumerable<SliceArea> areas = null,
+            IEnumerable<Slice> slices = null)
         {
             _maxValues = maxValues;
             _settings = settings;
 
-            _abs = new SliceGlitchFrameProcessorAbsoluteValues()
-            {
-                CarryPoints = settings.LoopFrame,
+            _areas = areas ?? new[] { new SliceArea(_maxValues.MinY, _maxValues.MaxY) };
+            if (slices == null)
+                _randomSlices = true;
+            else
+                _slices = slices.ToList();
 
-                DriftMin = GetAbsoluteValuesFromPercent(maxValues.MinX, maxValues.MaxX, settings.DriftMin),
-                DriftMax = GetAbsoluteValuesFromPercent(maxValues.MinX, maxValues.MaxX, settings.DriftMax),
-
-                DriftProbability = settings.DriftProbability,
-
-                ShiftMin = GetAbsoluteValuesFromPercent(maxValues.MinX, maxValues.MaxX, settings.ShiftMin),
-                ShiftMax = GetAbsoluteValuesFromPercent(maxValues.MinX, maxValues.MaxX, settings.ShiftMax),
-
-                SliceCountMin = settings.SliceCountMin,
-                SliceCountMax = settings.SliceCountMax,
-
-                SliceHeightMin = GetAbsoluteValuesFromPercent(maxValues.MinY, maxValues.MaxY, settings.SliceHeightMin),
-                SliceHeightMax = GetAbsoluteValuesFromPercent(maxValues.MinY, maxValues.MaxY, settings.SliceHeightMax),
-
-                UpdateIntervalMin = settings.UpdateIntervalMin,
-                UpdateIntervalMax = settings.UpdateIntervalMax
-            };
-
-
-
-            // _timer = new Timer(UpdateSlices, null, _settings.UpdateInterval, _settings.UpdateInterval); // _settings.UpdateInterval);
-            _updateTask = Task.Factory.StartNew(UpdateSlices);
+            if (_randomSlices)
+                _updateTask = Task.Factory.StartNew(UpdateSlices);
         }
 
 
@@ -86,32 +72,22 @@ namespace FT2232ImageOutput.FrameProcessors
             res.Duration = frame.Duration;
             res.Number = frame.Number;
 
-            // if (!frame.Points.Any())
-            // {
-            //     res.Points = new ImagePoint[0];
-            //     return res;
-            // }
-
             res.Points = GetPoints(frame.Points);
 
-
             return res;
-
         }
 
 
-        void UpdateSlices() //object x)
+        void UpdateSlices()
         {
-
-            var random = new Random((int)DateTime.Now.Ticks);
 
             while (true)
             {
                 var slices = new List<Slice>();
                 
-                var count = random.Next(_settings.SliceCountMin, _settings.SliceCountMax);
+                var count = _random.Next(_settings.SliceCountMin, _settings.SliceCountMax);
 
-                var sliceMode = random.NextDouble() <= _abs.DriftProbability
+                var sliceMode = _random.NextDouble() <= _settings.DriftProbability
                     ? SliceMode.Drift
                     : SliceMode.Shift;
 
@@ -125,22 +101,14 @@ namespace FT2232ImageOutput.FrameProcessors
                     while (retry < 300)
                     {
 
-                        slice.Height = random.Next(_abs.SliceHeightMin, _abs.SliceHeightMax);
+                        slice.Area.Start = _random.Next(_maxValues.MinY, _maxValues.MaxX + _settings.SliceHeightMax);
 
-                        //if (sliceMode == SliceMode.Drift)
-                        {
-                            slice.Drift = random.Next(_abs.DriftMin, _abs.DriftMax);
-                        }
-                        //else
-                        {
-                            slice.Shift = random.Next(_abs.ShiftMin, _abs.ShiftMax);
-                        }
+                        slice.Area.End = slice.Area.Start + _random.Next(_settings.SliceHeightMin, _settings.SliceHeightMax);
 
-                        slice.Position = random.Next(_maxValues.MinY, _maxValues.MaxX + _abs.SliceHeightMax);
+                        slice.Drift = _random.Next(_settings.DriftMin, _settings.DriftMax);
+                        slice.Shift = _random.Next(_settings.ShiftMin, _settings.ShiftMax);
 
-                        var collisions = slices.Where(s =>
-                            s.Position + s.Height >= slice.Position && s.Position <= slice.Position + slice.Height
-                            );
+                        var collisions = slices.Where(s => !s.Area.IsOverlap(slice.Area));
 
                         if (!collisions.Any())
                         {
@@ -161,7 +129,7 @@ namespace FT2232ImageOutput.FrameProcessors
                 _slicesLock.ExitWriteLock();
 
 
-                Thread.Sleep(random.Next(
+                Thread.Sleep(_random.Next(
                     (int)_settings.UpdateIntervalMin.TotalMilliseconds,
                     (int)_settings.UpdateIntervalMax.TotalMilliseconds)
                     );
@@ -171,132 +139,123 @@ namespace FT2232ImageOutput.FrameProcessors
 
         IEnumerable<ImagePoint> GetPoints(IEnumerable<ImagePoint> originalPoints)
         {
-            _slicesLock.EnterReadLock();
+            IEnumerable<Slice> slices;
 
-            var slices = _slices.Select(s => (Slice) s.Clone()).ToArray();
+            if (_randomSlices)
+            {
+                _slicesLock.EnterReadLock();
 
-            _slicesLock.ExitReadLock();
+                slices = _slices.Select(s => (Slice)s.Clone()).ToArray();
+
+                _slicesLock.ExitReadLock();
+            }
+            else
+            {
+                slices = _slices;
+            }
 
             Slice slice = null;
+            SliceArea area = null;
 
 
             foreach (var point in originalPoints)
             {
-
-                if (!(slice?.IsInBound(point.Y) ?? false))
+                if (!(area?.Contains(point.Y) ?? false))
                 {
-                    slice = slices.SingleOrDefault(s => s.IsInBound(point.Y));
+                    area = _areas.FirstOrDefault(a => a.Contains(point.Y));
+                    if (area == null)
+                    {
+                        yield return point;
+                        continue;
+                    }
                 }
 
-                int newX = point.X;
+                if (!(slice?.Area.Contains(point.Y) ?? false))
+                {
+                    slice = slices.FirstOrDefault(s => s.Area.Contains(point.Y));
+                    if (slice == null)
+                    {
+                        yield return point;
+                        continue;
+                    }
+                }
+
+                var newPoint = point.Clone();
 
                 if (slice != null)
                 {
                     switch (slice.Mode)
                     {
                         case SliceMode.Drift:
-                            var vertPosInSlice = point.Y - slice.Position;
-                            var ypercent = (float) vertPosInSlice / (float) slice.Height;
+                            var vertPosInSlice = point.Y - slice.Area.Start;
+                            var ypercent = (float) vertPosInSlice / slice.Area.Height;
                             var shift = (int)Math.Round((ypercent * slice.Drift) - (slice.Drift / 2.0));
-                            newX += shift;
+                            newPoint.X += shift;
 
-                            newX = newX + slice.Shift;
+                            newPoint.X += slice.Shift;
                             break;
 
                         case SliceMode.Shift:
-                            newX = newX + slice.Shift;
+                            newPoint.X += slice.Shift;
                             break;
                     }
                 }
 
-                var blanking = point.Blanking;
 
-                if (_abs.CarryPoints)
+
+                if (_settings.CarryPoints)
                 {
-
                     // TODO: add blanking before carrying?
 
-                    if (_maxValues.MinX > newX)
+                    if (_maxValues.MinX > newPoint.X)
                     {
-                        newX = _maxValues.MaxX - (_maxValues.MinX - newX);
-                        //blanking = true;
+                        newPoint.X = _maxValues.MaxX - (_maxValues.MinX - newPoint.X);
                     }
 
-                    if (newX > _maxValues.MaxX)
+                    if (newPoint.X > _maxValues.MaxX)
                     {
-                        newX = _maxValues.MinX + (newX - _maxValues.MaxX);
-                        // blanking = true;
+                        newPoint.X = _maxValues.MinX + (newPoint.X - _maxValues.MaxX);
                     }
-
-                    var newPoint = point.Clone();
-                    newPoint.X = newX;
-                    newPoint.Blanking = blanking;
-
-                    yield return newPoint;
-
                 }
                 else
                 {
-                    if (_maxValues.MinX > newX)
+                    if (_maxValues.MinX > newPoint.X)
                     {
-                        newX = _maxValues.MinX;
-                        blanking = true;
+                        newPoint.X = _maxValues.MinX;
+                        newPoint.Blanking = true;
                     }
 
-                    if (newX > _maxValues.MaxX)
+                    if (newPoint.X > _maxValues.MaxX)
                     {
-                        newX = _maxValues.MaxX;
-                        blanking = true;
+                        newPoint.X = _maxValues.MaxX;
+                        newPoint.Blanking = true;
                     }
 
-                    var newPoint = point.Clone();
-                    newPoint.X = newX;
-                    newPoint.Blanking = blanking;
-
-                    yield return newPoint;
                 }
 
+                yield return newPoint;
                 
-            }
+            } // /foreach originalPoints
             
             yield break;
 
         }
 
-        // https://stackoverflow.com/questions/4229662/convert-numbers-within-a-range-to-numbers-within-another-range
-        int ConvertRange(
-            int originalStart, int originalEnd, // original range
-            int newStart, int newEnd, // desired range
-            int value) // value to convert
-        {
-            double scale = (double)(newEnd - newStart) / (originalEnd - originalStart);
-            return (int)(newStart + ((value - originalStart) * scale));
-        }
-        
-        int GetAbsoluteValuesFromPercent(int originalStart, int originalEnd, float percent)
-        {
-            var diff = originalEnd - originalStart;
-            return (int) Math.Round(originalStart + (diff * percent));
-        }
 
     }
 
-    class Slice: ICloneable
+    public class Slice: ICloneable
     {
         public SliceMode Mode { get; set; }
-        public int Height { get; set; }
-        public int Position { get; set; }
+        public SliceArea Area { get; set; } = new SliceArea(0, 0);
         public int Shift { get; set; }
         public int Drift { get; set; }
-
-        public bool IsInBound(int y) => (Position <= y) && (y <= Position + Height);
 
         public object Clone()
         {
             return new Slice()
             {
-                Height = this.Height,
-                Position = this.Position,
+                Area = this.Area,
                 Shift = this.Shift,
                 Drift = this.Drift,
                 Mode = this.Mode
@@ -304,29 +263,27 @@ namespace FT2232ImageOutput.FrameProcessors
         }
     }
 
-    enum SliceMode { Shift, Drift };
 
-    public class SliceGlitchFrameProcessorAbsoluteValues
+    public class SliceArea
     {
-        public bool CarryPoints { get; set; }
+        public SliceArea(int start, int end)
+        {
+            Start = start;
+            End = end;
+        }
 
-        public float DriftProbability { get; set; }
+        public int Start { get; set; }
+        public int End { get; set; }
+        public int Height => End - Start;
 
-        public int DriftMin { get; set; }
-        public int DriftMax { get; set; }
 
-        public TimeSpan UpdateIntervalMin { get; set; }
-        public TimeSpan UpdateIntervalMax { get; set; }
+        public bool Contains(int p) => Start < p && p < End;
 
-        public int SliceCountMin { get; set; }
-        public int SliceCountMax { get; set; }
-
-        public int SliceHeightMin { get; set; }
-        public int SliceHeightMax { get; set; }
-
-        public int ShiftMin { get; set; }
-        public int ShiftMax { get; set; }
+        public bool IsOverlap(SliceArea area) => Contains(area.Start) || Contains(area.End);
     }
+
+
+    public enum SliceMode { Shift, Drift };
 
 
 }

@@ -15,8 +15,29 @@ namespace FT2232ImageOutput.Utils
             int newStart, int newEnd, // desired range
             int value) // value to convert
         {
-            double scale = (double)(newEnd - newStart) / (originalEnd - originalStart);
+            float scale = (float)(newEnd - newStart) / (originalEnd - originalStart);
             return (int)(newStart + ((value - originalStart) * scale));
+        }  
+        
+        public static float ConvertRange(
+            float originalStart, float originalEnd, // original range
+            float newStart, float newEnd, // desired range
+            float value) // value to convert
+        {
+            float scale = (float)(newEnd - newStart) / (originalEnd - originalStart);
+            return (newStart + ((value - originalStart) * scale));
+        }
+
+
+        public static float RangePercent(float originalStart, float originalEnd, float percent)
+        {
+            var diff = originalEnd - originalStart;
+            return originalStart + (diff * percent);
+        }
+
+        public static int RangePercent(int originalStart, int originalEnd, float percent)
+        {
+            return (int)Math.Round(RangePercent((float)originalStart, (float)originalEnd, percent));
         }
 
 

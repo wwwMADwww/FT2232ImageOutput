@@ -6,18 +6,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 
 namespace FT2232ImageOutput.PathImages
 {
-
-    // public class PathToPointImageSourceParams
-    // {
-    //     public float DotImageDistanceMin { get; set; }
-    //     public float DotImageDistanceMax { get; set; }
-    //     public float FillDistanceMin { get; set; }
-    //     public float FillDistanceMax { get; set; }
-    // }
 
     public enum ColorChannel { None, Red, Green, Blue, Alpha, Grayscale }
 
@@ -31,16 +22,14 @@ namespace FT2232ImageOutput.PathImages
         private readonly ColorChannel _fillIntensity;
         private readonly ColorChannel _fillBrightness;
 
-        //private readonly IPrimitiveFillGenerator _fillGenerator;
-        // private readonly PathToPointImageSourceParams _parameters;
-
         public PathImageSource(
             IPathSource pathSource,
             IPrimitiveConverter strokeConverter,
             ColorChannel strokeBrightness, 
             IPrimitiveConverter fillConverter, Func<Path, IPrimitiveFillGenerator> fillGeneratorFactory,
             ColorChannel fillIntensity, ColorChannel fillBrightness,
-            ImageMaxValues maxValues)
+            ImageMaxValues maxValues,
+            bool forceNotStreaming)
         {
             _pathSource = pathSource;
             _strokeConverter = strokeConverter;
@@ -49,9 +38,8 @@ namespace FT2232ImageOutput.PathImages
             _strokeBrightness = strokeBrightness;
             _fillIntensity = fillIntensity;
             _fillBrightness = fillBrightness;
-            //_fillGenerator = fillGenerator;
             MaxValues = maxValues;
-            // _parameters = parameters;
+            Streaming = forceNotStreaming ? false : _pathSource.Streaming;
         }
 
         public ImageType ImageType => ImageType.Vector;
@@ -60,7 +48,7 @@ namespace FT2232ImageOutput.PathImages
         public ImageMaxValues MaxValues { get; protected set; }
 
 
-        public bool Streaming => true;
+        public bool Streaming { get; private set; }
 
 
         public IEnumerable<ImageFrame> GetFrames()
@@ -96,17 +84,20 @@ namespace FT2232ImageOutput.PathImages
 
                         strokePrimitives = _strokeConverter.Convert(strokePrimitives).ToArray();
 
-
-                        points.Add(ToImagePoint(strokePrimitives.First().FirstPoint, GetChannelValue(path.StrokeColor.Value, _strokeBrightness)));
-
-                        foreach (var prim in strokePrimitives)
+                        if (strokePrimitives.Any())
                         {
-                            points.Add(ToImagePoint(prim.LastPoint, GetChannelValue(path.StrokeColor.Value, _strokeBrightness)));
-                        }
 
-                        var lastpoint = points.Last();//.Clone();
-                        lastpoint.Blanking = true;
-                        points.Add(lastpoint);
+                            points.Add(ToImagePoint(strokePrimitives.First().FirstPoint, GetChannelValue(path.StrokeColor.Value, _strokeBrightness)));
+
+                            foreach (var prim in strokePrimitives)
+                            {
+                                points.Add(ToImagePoint(prim.LastPoint, GetChannelValue(path.StrokeColor.Value, _strokeBrightness)));
+                            }
+
+                            var lastpoint = points.Last();//.Clone();
+                            lastpoint.Blanking = true;
+                            points.Add(lastpoint);
+                        }
                     }
                 }
 

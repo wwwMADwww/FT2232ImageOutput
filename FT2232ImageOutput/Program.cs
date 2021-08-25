@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using FT2232ImageOutput.FrameProcessors;
 using FT2232ImageOutput.HardwareOutput;
-using FT2232ImageOutput.ImageSources;
 using FT2232ImageOutput.MainProcessors;
 using FT2232ImageOutput.PathImages;
 using FT2232ImageOutput.PathImages.PathSources;
@@ -213,23 +208,27 @@ namespace FT2232ImageOutput
                 // new AddBlankingPointsFrameProcessor(10, 4, true),
 
 
-                // new SliceGlitchFrameProcessor(targetMaxValues, new SliceGlitchFrameProcessorSettings(){
-                //     LoopFrame = true,
-                //     DriftProbability = 0.2f,
-                //     DriftMin = 0.2f,
-                //     DriftMax = 0.4f,
-                //     ShiftMin = -0.1f,
-                //     ShiftMax = 0.1f,
-                //     SliceCountMin = 1,
-                //     SliceCountMax = 10,
-                //     SliceHeightMin = 0.05f,
-                //     SliceHeightMax = 0.40f,
-                //     UpdateIntervalMin = TimeSpan.FromMilliseconds(30),
-                //     UpdateIntervalMax = TimeSpan.FromMilliseconds(100)
-                // })
+                // new SliceGlitchFrameProcessor(
+                //     maxValues: targetMaxValues,
+                //     settings: new SliceGlitchFrameProcessorSettings() {
+                //         CarryPoints = true,
+                //         DriftProbability = 0.2f,
+                //         DriftMin = (int) (targetMaxValues.Width * 0.2f),
+                //         DriftMax = (int) (targetMaxValues.Width * 0.4f),
+                //         ShiftMin = (int) (targetMaxValues.Width * -0.1f),
+                //         ShiftMax = (int) (targetMaxValues.Width *  0.1f),
+                //         SliceCountMin = 1,
+                //         SliceCountMax = 10,
+                //         SliceHeightMin = (int) (targetMaxValues.Height * 0.05f),
+                //         SliceHeightMax = (int) (targetMaxValues.Height * 0.40f),
+                //         UpdateIntervalMin = TimeSpan.FromMilliseconds(30),
+                //         UpdateIntervalMax = TimeSpan.FromMilliseconds(100)
+                //     },
+                //     areas: new [] { new SliceArea(3225, 3688) }
+                // )
 
             };
-
+             
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3);
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2);
             // var pointBitMapper = new ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode.Mode_Sr8x3_XY8_Z8);

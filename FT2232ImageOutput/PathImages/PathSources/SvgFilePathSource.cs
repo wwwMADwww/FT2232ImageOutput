@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using ManuPath;
 using Svg;
 using Svg.Pathing;
+using ManuPath;
 
 namespace FT2232ImageOutput.PathImages.PathSources
 {
@@ -14,9 +13,10 @@ namespace FT2232ImageOutput.PathImages.PathSources
     {
         private readonly string _filename;
 
+        private readonly SvgDocument _svgDocument;
+
         Path[][] _frames = null;
 
-        SvgDocument _svgDocument;
 
         public SvgFilePathSource(string filename)
         {
@@ -26,6 +26,8 @@ namespace FT2232ImageOutput.PathImages.PathSources
         }
 
         public Vector2 Size => new Vector2(_svgDocument.ViewBox.Width, _svgDocument.ViewBox.Height);
+
+        public bool Streaming => false;
 
         public IEnumerable<IEnumerable<Path>> GetFrames()
         {
@@ -80,7 +82,7 @@ namespace FT2232ImageOutput.PathImages.PathSources
                     }
                     else
                     {
-                        Console.WriteLine($"path type '{path.GetType().Name}' not supported");
+                        Console.WriteLine($"path type '{path.GetType().Name}' not supported. svg element id {e.ID}");
                     }
                 }
 

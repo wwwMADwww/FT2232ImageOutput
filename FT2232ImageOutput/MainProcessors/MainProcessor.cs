@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,9 +18,8 @@ namespace FT2232ImageOutput.MainProcessors
 
         private readonly int _frameInterval;
         private readonly bool _overflowPreventing;
-
-        ConcurrentQueue<byte[][]> _bufQueue = new ConcurrentQueue<byte[][]>();
-        int _bufQueueMax = 2;
+        private readonly ConcurrentQueue<byte[][]> _bufQueue = new ConcurrentQueue<byte[][]>();
+        private readonly int _bufQueueMax = 2;
 
         
         public MainProcessor(
@@ -44,12 +42,12 @@ namespace FT2232ImageOutput.MainProcessors
 
         public void Start()
         {
-            Task.Factory.StartNew(async () => await FrameReadAndProcess());
-            Task.Factory.StartNew(async () => await FrameOutput());            
+            Task.Factory.StartNew(() => FrameReadAndProcess());
+            Task.Factory.StartNew(() => FrameOutput());            
         }
 
 
-        Task FrameReadAndProcess()
+        void FrameReadAndProcess()
         {
             try
             {
@@ -164,7 +162,7 @@ namespace FT2232ImageOutput.MainProcessors
         }
 
 
-        Task FrameOutput()
+        void FrameOutput()
         {
             try
             {
