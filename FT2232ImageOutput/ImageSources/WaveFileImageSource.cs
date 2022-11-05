@@ -4,32 +4,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MathCore.WAV;
+using NAudio.Wave;
 
 namespace FT2232ImageOutput.ImageSources
 {
 
-    // TODO: custom channel mapping
-    public enum WaveFileImageSourceChannelMode { LeftX_RightY, LeftY_RightX }
-
     public class WaveFileImageSource : IImageSource
     {
         private readonly string _filePath;
-        private readonly WaveFileImageSourceChannelMode _channelMode;
 
-        private int _sampleRate;
-        private readonly long[] _channelX;
-        private readonly long[] _channelY;
+        private List<ImageFrame> _frames;
 
-        public WaveFileImageSource(
-            string filePath, 
-            WaveFileImageSourceChannelMode channelMode = WaveFileImageSourceChannelMode.LeftX_RightY
-            )
-        {
-
-            _channelMode = channelMode;
-
-            
+        public WaveFileImageSource(string filePath, ImageMaxValues maxValues)
+        {            
             _filePath = Path.GetFullPath(filePath);
 
             if (!File.Exists(_filePath))
@@ -38,58 +25,7 @@ namespace FT2232ImageOutput.ImageSources
             if (Directory.Exists(_filePath))
                 throw new ArgumentException($"Path '{_filePath}' is a directory.");
 
-
-            var wav = new WavFile(_filePath);
-
-            Console.WriteLine($"wave file '{_filePath}'");
-            Console.WriteLine($"duration {wav.FileTimeLength}");
-            Console.WriteLine($"length {wav.FullLength}");
-            Console.WriteLine($"sample rate {wav.SampleRate}");
-            Console.WriteLine($"channels {wav.ChannelsCount}:");
-
-            _sampleRate = wav.SampleRate;
-
-            if (wav.ChannelsCount == 1)
-            {
-                _channelY = _channelX = wav.GetChannel(0);
-            }
-            else
-            {
-                switch (_channelMode)
-                {
-                    case WaveFileImageSourceChannelMode.LeftX_RightY:
-                        _channelX = wav.GetChannel(0);
-                        _channelY = wav.GetChannel(1);
-                        break;
-
-                    case WaveFileImageSourceChannelMode.LeftY_RightX:
-                        _channelX = wav.GetChannel(1);
-                        _channelY = wav.GetChannel(0);
-                        break;
-
-                    default:
-                        throw new ArgumentException($"Unknown channel mode {channelMode}");
-                }
-            }
-
-
-            MaxValues = new ImageMaxValues()
-            {
-                MaxRGB = 1,
-                MinX = short.MinValue,
-                MinY = short.MinValue,
-                MinZ = 0,
-
-                MaxX = short.MaxValue,
-                MaxY = short.MaxValue,
-                MaxZ = 1
-            };
-            
-            // foreach (var i in _channelX)
-            // {
-            //     Console.WriteLine(i);
-            // }
-
+            MaxValues = maxValues;
         }
 
 
@@ -99,66 +35,78 @@ namespace FT2232ImageOutput.ImageSources
 
 
 
-        public ImageMaxValues MaxValues { get; }
+        public ImageMaxValues MaxValues { get; set; }
 
 
 
         public IEnumerable<ImageFrame> GetFrames()
         {
+            if (_frames != null)
+            {
+                return _frames;
+            }
 
-            var frameCount = (int)_channelX.Length / (int)(_sampleRate / 100);
+            _frames = new List<ImageFrame>();
 
-            if (frameCount == 0)
-                frameCount = 1;
-
-            foreach (var f in Enumerable.Range(0, frameCount))
+            using (var wavReader = new WaveFileReader(_filePath))
             {
 
-                yield return new ImageFrame()
+                var sampleRate = wavReader.WaveFormat.SampleRate;
+                var channels = wavReader.WaveFormat.Channels;
+
+                // Console.WriteLine($"wave file '{_filePath}'");
+                // // Console.WriteLine($"duration {wav.FileTimeLength}");
+                // // Console.WriteLine($"length {wav.FullLength}");
+                // Console.WriteLine($"sample rate {sampleRate}");
+                // Console.WriteLine($"channels {channels}:");
+                
+                var pointsPerFrame = (int)(sampleRate / 100);
+
+                var framePoints = new List<ImagePoint>(pointsPerFrame);
+                int frameNumber = 0;
+
+                while (true)
                 {
-                    Duration = -1,
-                    Number = f,
-                    Points = GetPoints(f * ((int)_sampleRate / 100), (int)_sampleRate / 100) // 3600
-                };
+                    var sampleFrame = wavReader.ReadNextSampleFrame();
+
+                    if (sampleFrame != null)
+                    {
+                        var point = new ImagePoint()
+                        {
+                            X = (int)((sampleFrame[0] + 1f) / 2f * MaxValues.MaxX),
+                            Y = (int)((sampleFrame[1] + 1f) / 2f * MaxValues.MaxY),
+                            Z = channels > 2
+                                ? (int)((sampleFrame[2] + 1f) / 2f * MaxValues.MaxY)
+                                : MaxValues.MaxZ,
+
+                            R = MaxValues.MaxRGB,
+                            G = MaxValues.MaxRGB,
+                            B = MaxValues.MaxRGB,
+
+                            Blanking = false
+                        };
+
+                        framePoints.Add(point);
+                    }
+
+                    if (framePoints.Count >= pointsPerFrame || (sampleFrame == null && framePoints.Count > 0))
+                    {
+                        frameNumber++;
+                        _frames.Add(new ImageFrame() {
+                            Duration = -1,
+                            Number = frameNumber,
+                            Points = framePoints.ToArray()
+                        });
+                        framePoints.Clear();
+                    }
+
+                    if (sampleFrame == null)
+                        break;
+                }
 
             }
 
-            yield break;
-
-        }
-
-        IEnumerable<ImagePoint> GetPoints(int start, int count)
-        {
-
-            long stop = start + count;
-
-            if (stop > _channelX.Length)
-                stop = _channelX.Length;
-
-            count = (int) stop - start;
-
-            var points = new ImagePoint[count];
-
-            foreach (var i in Enumerable.Range(start, count))
-            {
-
-                points[i - start] = new ImagePoint()
-                {
-                    X = (int) _channelX[i],
-                    Y = (int) _channelY[i],
-                    Z = MaxValues.MaxZ,
-
-                    R = MaxValues.MaxRGB,
-                    G = MaxValues.MaxRGB,
-                    B = MaxValues.MaxRGB,
-
-                    Blanking = false
-                };
-
-            }
-
-            return points;
-
+            return _frames;
 
         }
 

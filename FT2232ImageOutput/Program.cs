@@ -114,7 +114,7 @@ namespace FT2232ImageOutput
             //       96000     153600
             //       48000      76800
             //       44100      70550
-            // var imageSource = new WaveFileImageSource(filepath);
+            // var imageSource = new WaveFileImageSource(filepath, targetMaxValues);
 
             // var imageSource = new IldaImageSource(filepath);
             // var imageSource = new IldaMultipleImageSource(ildafiles);
