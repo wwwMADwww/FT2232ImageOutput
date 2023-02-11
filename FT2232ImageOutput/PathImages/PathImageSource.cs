@@ -71,7 +71,7 @@ namespace FT2232ImageOutput.PathImages
 
             var sw = new Stopwatch();
             sw.Start();
-            foreach (var pathFrame in pathFrames)
+            foreach (var pathFrame in pathFrames.Select(SortPaths))
             {
                 // TODO: cache scaled
                 // TODO: cache stroke, fill update only
@@ -143,6 +143,41 @@ namespace FT2232ImageOutput.PathImages
 
         }
 
+        IEnumerable<Path> SortPaths(IEnumerable<Path> paths)
+        {
+            var startPath = paths.First();
+            var sortedPaths = new List<Path>() { startPath };
+            var unsortedPaths = paths.ToList();
+            unsortedPaths.Remove(startPath);
+
+            while (unsortedPaths.Any())
+            {
+                var sortedLast = sortedPaths.Last().Primitives.Last().LastPoint;
+
+                var ordered = unsortedPaths.Select(b => {
+                    var bFirst = b.Primitives.First().FirstPoint;
+                    var bLast = b.Primitives.Last().LastPoint;
+                    var distanceStraight = Math.Sqrt(Math.Pow(bFirst.X - sortedLast.X, 2) + Math.Pow(bFirst.Y - sortedLast.Y, 2));
+                    var distanceReverse = Math.Sqrt(Math.Pow(bLast.X - sortedLast.X, 2) + Math.Pow(bLast.Y - sortedLast.Y, 2));
+
+                    return (path: b, distanceStraight, distanceReverse);
+                })
+                .OrderBy(x => x.distanceStraight <= x.distanceReverse ? x.distanceStraight : x.distanceReverse)
+                .ToList();
+
+                var p = ordered.First();
+                if (p.distanceStraight > p.distanceReverse)
+                {
+                    p.path.Reverse();
+                }
+                var closestPath = p.path;
+
+                sortedPaths.Add(closestPath);
+                unsortedPaths.Remove(closestPath);
+            }
+
+            return sortedPaths;
+        }
 
         byte GetChannelValue(Color color, ColorChannel channel) => channel switch
             {
