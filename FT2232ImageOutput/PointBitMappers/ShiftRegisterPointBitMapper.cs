@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FT2232ImageOutput.Utils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace FT2232ImageOutput.PointBitMappers
         Mode_Sr8x6_XY10_Z4,
         Mode_Sr8x6_XY10_Z4_2,
         Mode_Sr8x6_XY10_Z4_3,
+        Mode_Sr8x6_XY10_Z4_4,
 
         // 5 registers, 16 bit XY R2R DACs, 8 bit Z R2R DAC
         Mode_Sr8x5_XY16_Z8
@@ -30,19 +32,16 @@ namespace FT2232ImageOutput.PointBitMappers
     public class ShiftRegisterPointBitMapper : IPointBitMapper
     {
         private readonly ShiftRegisterPointBitMapperMode _mode;
-        private readonly bool _invertBlanking;
-        byte _blankingValue8 = 0xFF;
-        byte _blankingValue4 = 0b1111;
+        private readonly bool _invertZ;
+        private readonly ImageMaxValues _maxValues;
+        const byte _allBits8 = 0xFF;
+        const byte _allBits4 = 0b1111;
 
-        public ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode mode, bool invertBlanking)
+        public ShiftRegisterPointBitMapper(ShiftRegisterPointBitMapperMode mode, bool invertZ, ImageMaxValues maxValues)
         {
             _mode = mode;
-            _invertBlanking = invertBlanking;
-            if (_invertBlanking)
-            {
-                _blankingValue8 = 0;
-                _blankingValue4 = 0;
-            }
+            _invertZ = invertZ;
+            _maxValues = maxValues;
         }
 
         public byte[] Map(ImagePoint point)
@@ -55,6 +54,7 @@ namespace FT2232ImageOutput.PointBitMappers
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4: return Mode_Sr8x6_XY10_Z4(point);
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2: return Mode_Sr8x6_XY10_Z4_2(point);
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3: return Mode_Sr8x6_XY10_Z4_3(point);
+                case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_4: return Mode_Sr8x6_XY10_Z4_4(point);
                 case ShiftRegisterPointBitMapperMode.Mode_Sr8x5_XY16_Z8: return Mode_Sr8x5_XY16_Z8(point);
                 default:
                     throw new ArgumentException($"Unknown mapping mode {_mode}", nameof(_mode));
@@ -71,7 +71,8 @@ namespace FT2232ImageOutput.PointBitMappers
 
                     case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4: 
                     case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_2: 
-                    case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3: return 8;
+                    case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_3: 
+                    case ShiftRegisterPointBitMapperMode.Mode_Sr8x6_XY10_Z4_4: return 8;
 
                     case ShiftRegisterPointBitMapperMode.Mode_Sr8x5_XY16_Z8: return 16;
 
@@ -81,6 +82,12 @@ namespace FT2232ImageOutput.PointBitMappers
             }
         }
 
+        int GetZValue(bool blanking, int z)
+        {
+            return !_invertZ
+                ? (blanking ? _maxValues.MinZ : z)
+                : (blanking ? _maxValues.MaxZ : MathUtils.ConvertRange(_maxValues.MinZ, _maxValues.MaxZ, _maxValues.MaxZ, _maxValues.MinZ, z));
+        }
 
 
         byte[] Mode_Sr8x3_XY8_Z8(ImagePoint point)
@@ -99,7 +106,7 @@ namespace FT2232ImageOutput.PointBitMappers
 
             values[pinDataX] = (byte)(point.X & 0xFF);
             values[pinDataY] = (byte)(point.Y & 0xFF);
-            values[pinDataZ] = (byte)(point.Blanking ? _blankingValue8 : ((point.Z ^ 0xFF) & 0xFF));
+            values[pinDataZ] = (byte)(GetZValue(point.Blanking, point.Z) & _allBits8);
 
 
             var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore, false);
@@ -128,7 +135,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX1Y2Z] = (byte)(
                 ((point.X >> 8) & 0b11) |
                 (((point.Y >> 8) & 0b11) << 2) |
-                ((point.Blanking ? _blankingValue4 : ((point.Z ^ 0b1111) & 0b1111)) << 4)
+                ((GetZValue(point.Blanking, point.Z) & _allBits4) << 4)
                 );
 
 
@@ -158,7 +165,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX1Y2Z] = (byte) (
                 (point.X & 0b11) | 
                 ((point.Y & 0b11) << 2) | 
-                ((point.Blanking ? _blankingValue4 : ((point.Z ^ 0b1111) & 0b1111)) << 4)
+                ((GetZValue(point.Blanking, point.Z) & _allBits4) << 4)
                 );
 
 
@@ -190,8 +197,8 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataY1] = (byte)(point.Y & 0b1111);
             values[pinDataY2] = (byte)((point.Y >> 4) & 0b1111);
             values[pinDataX3Y3] = (byte)(((point.X >> 8) & 0b11) | (((point.Y >> 8) & 0b11) << 2));
-            values[pinDataZ] = (byte)(point.Blanking ? _blankingValue4 : ((point.Z ^ 0b1111) & 0b1111));
-            
+            values[pinDataZ] = (byte)(GetZValue(point.Blanking, point.Z) & _allBits4);
+
             var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore, false);
 
             return bytes;
@@ -219,8 +226,8 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX3] = (byte)((point.X >> 6) & 0b1111);
             values[pinDataY2] = (byte)((point.Y >> 2) & 0b1111);
             values[pinDataY3] = (byte)((point.Y >> 6) & 0b1111);
-            values[pinDataZ] = (byte)(point.Blanking ? _blankingValue4 : ((point.Z ^ 0b1111) & 0b1111));
-            
+            values[pinDataZ] = (byte)(GetZValue(point.Blanking, point.Z) & _allBits4);
+
             var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore, false);
 
             return bytes;
@@ -248,7 +255,35 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX1Y1] = (byte)(((point.Y & 0b11) << 2) | (point.X & 0b11));
             values[pinDataY2] = (byte)((point.Y >> 2) & 0b1111);
             values[pinDataY3] = (byte)((point.Y >> 6) & 0b1111);
-            values[pinDataZ] = (byte)(point.Blanking ? _blankingValue4 : ((point.Z ^ 0b1111) & 0b1111));
+            values[pinDataZ] = (byte)(GetZValue(point.Blanking, point.Z) & _allBits4);
+
+            var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore, false);
+
+            return bytes;
+        }
+        
+        byte[] Mode_Sr8x6_XY10_Z4_4(ImagePoint point)
+        {
+            // TODO: make configurable
+            // see the schematic diagram
+            byte pinDataX2   = 0; // |xxxx----|
+            byte pinDataX3   = 1; // |xxxx----|
+            byte pinDataY2   = 2; // |yyyy----|
+            byte pinDataY3   = 3; // |yyyy----|
+            byte pinDataZ    = 4; // |zzzz----|
+            byte pinDataX1Y1 = 5; // |xxyy----|
+
+            byte pinShift = 6; // shift clock (SHCP or SRCLK)
+            byte pinStore = 7; // store clock (STCP or RCLK)
+
+            var values = new byte[6];
+
+            values[pinDataX2] = (byte)((point.X >> 2) & 0b1111);
+            values[pinDataX3] = (byte)((point.X >> 6) & 0b1111);
+            values[pinDataY2] = (byte)((point.Y >> 2) & 0b1111);
+            values[pinDataY3] = (byte)((point.Y >> 6) & 0b1111);
+            values[pinDataZ] = (byte)(GetZValue(point.Blanking, point.Z) & _allBits4);
+            values[pinDataX1Y1] = (byte)(((point.Y & 0b11) << 2) | (point.X & 0b11));
 
             var bytes = GetDataAndClockBytes(values, 4, pinShift, pinStore, false);
 
@@ -275,7 +310,7 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataX2] = (byte)((point.X >> 8) & 0xFF);
             values[pinDataY1] = (byte)(point.Y & 0xFF);
             values[pinDataY2] = (byte)((point.Y >> 8) & 0xFF);
-            values[pinDataZ ] = (byte)(point.Blanking ? _blankingValue8 : ((point.Z ^ 0xFF) & 0xFF));
+            values[pinDataZ ] = (byte)(GetZValue(point.Blanking, point.Z) & _allBits8);
 
             var bytes = GetDataAndClockBytes(values, 8, pinShift, pinStore, false);
 

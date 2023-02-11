@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FT2232ImageOutput.Utils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,9 +12,12 @@ namespace FT2232ImageOutput.PointBitMappers
 
     public class Mcp4921PointBitMapper : IPointBitMapper
     {
+        // TODO: MCP4921 have slow rise time, compensation is required
+        // e.g. additional points and/or dedicated blanking pin
+
         private readonly bool _analogZ;
         private readonly bool _manualDataClock;
-        private readonly bool _invertBlanking;
+        private readonly bool _invertZ;
         private readonly ImageMaxValues _maxValues;
 
         const int configDacSelect = 1 << 15; // !A/B
@@ -25,11 +29,11 @@ namespace FT2232ImageOutput.PointBitMappers
         const int _dataMask   = 0b0000111111111111;
         const int _configuration = configVrefBuf | configOutGain | configOutBuf;
 
-        public Mcp4921PointBitMapper(bool analogZ, bool manualDataClock, bool invertBlanking, ImageMaxValues maxValues)
+        public Mcp4921PointBitMapper(bool analogZ, bool manualDataClock, bool invertZ, ImageMaxValues maxValues)
         {
             _analogZ = analogZ;
             _manualDataClock = manualDataClock;
-            _invertBlanking = invertBlanking;
+            _invertZ = invertZ;
             _maxValues = maxValues;
         }
 
@@ -55,11 +59,14 @@ namespace FT2232ImageOutput.PointBitMappers
             values[pinDataY] = (_configuration | (point.Y & _dataMask)) & _packetMask;
 
             if (_analogZ)
-                values[pinDataZ] = _configuration | (point.Blanking 
-                    ? (_invertBlanking ? (_dataMask & _maxValues.MinZ) : (_dataMask & _maxValues.MaxZ))
-                    : (point.Z & _dataMask));
+                values[pinDataZ] = _configuration | (!_invertZ
+                    ? (point.Blanking ? _maxValues.MinZ : point.Z)
+                    : (point.Blanking ? _maxValues.MaxZ : MathUtils.ConvertRange(_maxValues.MinZ, _maxValues.MaxZ, _maxValues.MaxZ, _maxValues.MinZ, point.Z))
+                ) & _dataMask;
             else
-                values[pinDataZ] = point.Blanking ? _packetMask : 0;
+                values[pinDataZ] = !_invertZ
+                    ? (point.Blanking ? 0 : _dataMask)
+                    : (point.Blanking ? _dataMask : 0);
 
             var bytes = GetDataAndClockBytes(values, 16, pinSelect, pinShift, pinStore, _manualDataClock, false);
 

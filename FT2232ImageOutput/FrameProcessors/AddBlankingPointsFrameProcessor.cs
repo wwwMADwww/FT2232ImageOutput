@@ -28,13 +28,7 @@ namespace FT2232ImageOutput.FrameProcessors
             res.Duration = frame.Duration;
             res.Number = frame.Number;
 
-            // if (!frame.Points.Any())
-            // {
-            //     res.Points = new ImagePoint[0];
-            //     return res;
-            // }
-
-            res.Points = GetPoints(frame.Points); //points;
+            res.Points = GetPoints(frame.Points);
 
             return res;
 
@@ -43,6 +37,13 @@ namespace FT2232ImageOutput.FrameProcessors
 
         IEnumerable<ImagePoint> GetPoints(IEnumerable<ImagePoint> originalPoints)
         {
+            var firstpoint = originalPoints.First();
+            foreach (var _ in Enumerable.Range(0, _pointsAfter))
+            {
+                var newpoint = firstpoint.Clone();
+                newpoint.Blanking = true;
+                yield return newpoint;
+            }
 
 
             foreach (var point in originalPoints)
@@ -62,18 +63,15 @@ namespace FT2232ImageOutput.FrameProcessors
                     _prevblanked = false;
                     foreach (var _ in Enumerable.Range(0, _pointsAfter))
                     {
-                        yield return point.Clone();
+                        var newpoint = point.Clone();
+                        newpoint.Blanking = true;
+                        yield return newpoint;
                     }
                     continue;
                 }
 
                 yield return point.Clone();
             }
-
-            // var p = originalPoints.Last().Clone();
-            // p.Blanking = true;
-
-            // yield return p;
 
             if (!_savePrevPointsState)
                 _prevblanked = false;
