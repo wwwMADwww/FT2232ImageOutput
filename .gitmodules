@@ -6,4 +6,4 @@
 	url = https://github.com/wwwMADwww/ManuPathLib
 [submodule "FTD2XX_DotNetWrapper"]
 	path = FTD2XX_DotNetWrapper
-	url = git@github.com:wwwMADwww/FTD2XX_DotNetWrapper.git
+	url = https://github.com/wwwMADwww/FTD2XX_DotNetWrapper.git
