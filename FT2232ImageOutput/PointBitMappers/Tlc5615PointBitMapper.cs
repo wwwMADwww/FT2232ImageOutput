@@ -63,10 +63,10 @@ namespace FT2232ImageOutput.PointBitMappers
             // see the schematic diagram
             byte pinDataX = 0; // data X (DIN)
             byte pinDataY = 1; // data Y (DIN)
-            byte pinDataZ = 2; // data Z (DIN) or binary
+            byte pinDataZ = 2; // data Z (DIN)
 
-            byte pinSelect = 6; // select clock (CS)
-            byte pinShift  = 5; // shift clock (SCLK)
+            byte pinShift  = 6; // shift clock (SCLK). for manual data clocking
+            byte pinSelect = 7; // select clock (CS)
 
             var values = new int[3];
 
