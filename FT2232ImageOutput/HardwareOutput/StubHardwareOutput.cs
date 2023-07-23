@@ -25,7 +25,7 @@ namespace FT2232ImageOutput.HardwareOutput
 
         public int MaxBytes { get; private set; }
 
-        public void Output(IEnumerable<byte> bytes, bool flush)
+        public void Output(byte[] bytes, bool flush)
         {
             if (!bytes.Any())
                 return;

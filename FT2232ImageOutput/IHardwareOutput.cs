@@ -10,6 +10,6 @@ namespace FT2232ImageOutput
     {
         int MaxBytes { get; }
 
-        void Output(IEnumerable<byte> bytes, bool flush);
+        void Output(byte[] bytes, bool flush);
     }
 }

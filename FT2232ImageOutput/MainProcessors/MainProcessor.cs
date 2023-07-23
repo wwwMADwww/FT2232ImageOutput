@@ -52,6 +52,7 @@ namespace FT2232ImageOutput.MainProcessors
             try
             {
                 var frames = _imageSource.GetFrames();
+                var dataStream = new MemoryStream();
 
                 while (true)
                 {
@@ -68,85 +69,80 @@ namespace FT2232ImageOutput.MainProcessors
 
                     var sw = new Stopwatch();
 
-                    using (var dataStream = new MemoryStream())
+                    sw.Start();
+
+                    int sleepOverhead = 0;
+
+                    foreach (var frame in processedFrames) //.Where(p => p.Points.Any()))
                     {
-
-
+                        sw.Reset();
                         sw.Start();
 
-                        int sleepOverhead = 0;
+                        List<byte[]> frameBytes = new List<byte[]>();
 
-                        foreach (var frame in processedFrames) //.Where(p => p.Points.Any()))
+                        var bitsw = new Stopwatch();
+
+                        foreach (var point in frame.Points.ToArray())
                         {
-                            sw.Reset();
-                            sw.Start();
+                            var bits = _bitMapper.Map(point);
 
-                            List<byte[]> frameBytes = new List<byte[]>();
+                            dataStream.Write(bits, 0, bits.Length);
 
-                            foreach (var point in frame.Points.ToArray())
+                            if (_overflowPreventing && 
+                                (dataStream.Length + _bitMapper.MaxBytesPerPoint * 2) > _hardwareOutput.MaxBytes)
                             {
-                                var bits = _bitMapper.Map(point);
-
+                                var blankedPoint = point.Clone();
+                                blankedPoint.Blanking = true;
+                                    
+                                bits = _bitMapper.Map(blankedPoint);
+                                    
                                 dataStream.Write(bits, 0, bits.Length);
-
-                                if (_overflowPreventing && 
-                                    (dataStream.Length + _bitMapper.MaxBytesPerPoint * 2) > _hardwareOutput.MaxBytes)
-                                {
-                                    var blankedPoint = point.Clone();
-                                    blankedPoint.Blanking = true;
-                                    
-                                    bits = _bitMapper.Map(blankedPoint);
-                                    
-                                    dataStream.Write(bits, 0, bits.Length);
                                 
-                                    // MemoryStream.ToArray() returns a copy of data
-                                    frameBytes.Add(dataStream.ToArray());
+                                // MemoryStream.ToArray() returns a copy of data
+                                frameBytes.Add(dataStream.ToArray());
                                 
-                                    dataStream.SetLength(0);
-                                }
-
-                            }
-
-
-                            frameBytes.Add(dataStream.ToArray());
-                            dataStream.SetLength(0);
-
-
-                            while (true)
-                            {
-                                if (_bufQueue.Count() < _bufQueueMax)
-                                    break;
-
-                                Thread.Yield();
-                            }
-
-                            _bufQueue.Enqueue(frameBytes.ToArray());
-
-                            dataStream.SetLength(0);
-
-                            sw.Stop();
-
-                            var restInterval = _frameInterval - sw.ElapsedMilliseconds - sleepOverhead;
-
-                            if (restInterval > 0)
-                            {
-                                sw.Reset();
-                                sw.Start();
-                                Thread.Sleep((int)restInterval);
-                                sw.Stop();
-
-                                sleepOverhead = (int)(sw.ElapsedMilliseconds - restInterval);
+                                dataStream.SetLength(0);
                             }
 
                         }
 
-                        sw.Reset();
+                            
+
+
+                        frameBytes.Add(dataStream.ToArray());
+                        dataStream.SetLength(0);
+
+
+                        while (true)
+                        {
+                            if (_bufQueue.Count() < _bufQueueMax)
+                                break;
+
+                            Thread.Yield();
+                        }
+
+                        _bufQueue.Enqueue(frameBytes.ToArray());
+
+                        sw.Stop();
+
+                        var restInterval = _frameInterval - sw.ElapsedMilliseconds - sleepOverhead;
+
+                        if (restInterval > 0)
+                        {
+                            sw.Reset();
+                            sw.Start();
+                            Thread.Sleep((int)restInterval);
+                            sw.Stop();
+
+                            sleepOverhead = (int)(sw.ElapsedMilliseconds - restInterval);
+                        }
 
                     }
 
+                    sw.Reset();
+
                     if (_imageSource.Streaming)
                         frames = _imageSource.GetFrames();
-
 
                 }
             }

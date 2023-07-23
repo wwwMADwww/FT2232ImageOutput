@@ -16,6 +16,7 @@ namespace FT2232ImageOutput.HardwareOutput
         protected readonly string _channelName;
         protected readonly uint _baudrate;
         protected int _bufferSize;
+        protected byte[] _sendbuf;
         protected TimeSpan _maxSequentialIoErrorsTime = TimeSpan.FromSeconds(3);
 
         protected FTDI _channel;
@@ -27,19 +28,15 @@ namespace FT2232ImageOutput.HardwareOutput
             _channelName = channelName;
             _baudrate = baudrate;
             _bufferSize = bufferSize;
+            _sendbuf = new byte[_bufferSize];
             _channel = OpenChannel(_channelName, _baudrate);
         }
 
         public int MaxBytes => _bufferSize;
 
-        public void Output(IEnumerable<byte> bytes, bool flush)
-        {
-            
-            var buffer = bytes.ToArray();
-            
-            WriteToChannel(_channel, buffer, flush);
-
-
+        public void Output(byte[] bytes, bool flush)
+        {            
+            WriteToChannel(_channel, bytes, flush);
         }
 
 
@@ -48,17 +45,17 @@ namespace FT2232ImageOutput.HardwareOutput
         {
             var writtenTotal = 0;
 
-            byte[] sendbuf = dataBuf;
-
-            while (writtenTotal < dataBuf.Length)
+            while (true)
             {
                 uint written = 0;
                 FTDI.FT_STATUS status;
 
                 while (true)
                 {
-
-                    status = channel.Write(sendbuf, dataBuf.Length - writtenTotal, ref written);
+                    if (writtenTotal > 0)
+                        status = channel.Write(_sendbuf, dataBuf.Length - writtenTotal, ref written);
+                    else
+                        status = channel.Write(dataBuf, dataBuf.Length - writtenTotal > _bufferSize ? _bufferSize : dataBuf.Length - writtenTotal, ref written);
 
                     // TODO: reconnect and retry when fails
                     // Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
@@ -92,8 +89,15 @@ namespace FT2232ImageOutput.HardwareOutput
 
                 writtenTotal += (int)written;
 
-                sendbuf = new byte[dataBuf.Length];
-                Array.Copy(dataBuf, writtenTotal, sendbuf, 0, dataBuf.Length - writtenTotal);
+                if (writtenTotal >= dataBuf.Length)
+                {
+                    break;
+                }
+
+                if (written > 0)
+                {
+                    Array.Copy(dataBuf, writtenTotal, _sendbuf, 0, dataBuf.Length - writtenTotal);
+                }
             }
 
             if (flush)
@@ -164,7 +168,7 @@ namespace FT2232ImageOutput.HardwareOutput
             status = res.SetBitMode(0b11111111, FTDI.FT_BIT_MODES.FT_BIT_MODE_ASYNC_BITBANG);
             Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
 
-            status = res.SetTimeouts(1, 1);
+            status = res.SetTimeouts(0, 0);
             Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
 
             return res;
