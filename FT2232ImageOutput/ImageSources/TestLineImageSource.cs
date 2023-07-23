@@ -1,11 +1,5 @@
-﻿using DSS.ILDA;
+﻿using System.Collections.Generic;
 using FT2232ImageOutput.Utils;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FT2232ImageOutput.ImageSources
 {
@@ -34,19 +28,15 @@ namespace FT2232ImageOutput.ImageSources
 
         public IEnumerable<ImageFrame> GetFrames()
         {
-
             var frames = new List<ImageFrame>();
             
             var points = new List<ImagePoint>(_lineBounds.MaxX - _lineBounds.MinX);
-
-            var zkoeff = ((_lineBounds.MaxX - _lineBounds.MinX) + 1) / ((_lineBounds.MaxZ - _lineBounds.MinZ) + 1);
 
             for (int i = _lineBounds.MinX; i <= _lineBounds.MaxX; i++)
             {
                 ImagePoint point = CreatePoint(i);
 
                 points.Add(point);
-
             }
 
             if (_bothDirections)
@@ -60,7 +50,6 @@ namespace FT2232ImageOutput.ImageSources
                 }
             }
 
-            points[points.Count - 2].Blanking = true;
             points[points.Count - 1].Blanking = true;
 
             frames.Add(new ImageFrame()
