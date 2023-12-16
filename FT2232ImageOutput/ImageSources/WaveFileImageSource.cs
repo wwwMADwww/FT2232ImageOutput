@@ -12,10 +12,10 @@ namespace FT2232ImageOutput.ImageSources
     public class WaveFileImageSource : IImageSource
     {
         private readonly string _filePath;
-
+        private readonly bool _swapXY;
         private List<ImageFrame> _frames;
 
-        public WaveFileImageSource(string filePath, ImageMaxValues maxValues)
+        public WaveFileImageSource(string filePath, ImageMaxValues maxValues, bool swapXY = false)
         {            
             _filePath = Path.GetFullPath(filePath);
 
@@ -26,6 +26,7 @@ namespace FT2232ImageOutput.ImageSources
                 throw new ArgumentException($"Path '{_filePath}' is a directory.");
 
             MaxValues = maxValues;
+            _swapXY = swapXY;
         }
 
 
@@ -73,8 +74,8 @@ namespace FT2232ImageOutput.ImageSources
                     {
                         var point = new ImagePoint()
                         {
-                            X = (int)((sampleFrame[0] + 1f) / 2f * MaxValues.MaxX),
-                            Y = (int)((sampleFrame[1] + 1f) / 2f * MaxValues.MaxY),
+                            X = (int)((sampleFrame[_swapXY ? 1: 0] + 1f) / 2f * MaxValues.MaxX),
+                            Y = (int)((sampleFrame[_swapXY ? 0 : 1] + 1f) / 2f * MaxValues.MaxY),
                             Z = channels > 2
                                 ? (int)((sampleFrame[2] + 1f) / 2f * MaxValues.MaxY)
                                 : MaxValues.MaxZ,
