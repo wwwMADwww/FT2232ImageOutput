@@ -55,7 +55,7 @@ namespace FT2232ImageOutput.Configs
 
             var hardwareOutput = new FT2232HardwareOutput("A", baudrate, 10240);
 
-            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 0, true);
+            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 0);
 
             mainProcess.Start();
 

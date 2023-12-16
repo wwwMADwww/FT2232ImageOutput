@@ -1,12 +1,7 @@
 ﻿using FTD2XX_NET;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace FT2232ImageOutput.HardwareOutput
 {
@@ -23,7 +18,7 @@ namespace FT2232ImageOutput.HardwareOutput
 
         protected DateTime _sequentialIoErrorsTimeStart = default;
 
-        public FT2232HardwareOutput(string channelName, uint baudrate, int bufferSize = 10240)
+        public FT2232HardwareOutput(string channelName, uint baudrate, int bufferSize)
         {
             _channelName = channelName;
             _baudrate = baudrate;
@@ -34,14 +29,14 @@ namespace FT2232ImageOutput.HardwareOutput
 
         public int MaxBytes => _bufferSize;
 
-        public void Output(byte[] bytes, bool flush)
+        public void Output(byte[] bytes)
         {            
-            WriteToChannel(_channel, bytes, flush);
+            WriteToChannel(_channel, bytes);
         }
 
 
 
-        protected void WriteToChannel(FTDI channel, byte[] dataBuf, bool flush)
+        protected void WriteToChannel(FTDI channel, byte[] dataBuf)
         {
             var writtenTotal = 0;
 
@@ -52,10 +47,18 @@ namespace FT2232ImageOutput.HardwareOutput
 
                 while (true)
                 {
+                    // TODO: use spans somehow
                     if (writtenTotal > 0)
+                    {
                         status = channel.Write(_sendbuf, dataBuf.Length - writtenTotal, ref written);
+                    }
                     else
-                        status = channel.Write(dataBuf, dataBuf.Length - writtenTotal > _bufferSize ? _bufferSize : dataBuf.Length - writtenTotal, ref written);
+                    {
+                        status = channel.Write(
+                            dataBuf,
+                            dataBuf.Length - writtenTotal > _bufferSize ? _bufferSize : dataBuf.Length - writtenTotal,
+                            ref written);
+                    }
 
                     // TODO: reconnect and retry when fails
                     // Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
@@ -99,10 +102,6 @@ namespace FT2232ImageOutput.HardwareOutput
                     Array.Copy(dataBuf, writtenTotal, _sendbuf, 0, dataBuf.Length - writtenTotal);
                 }
             }
-
-            if (flush)
-                channel.Purge(FTDI.FT_PURGE.FT_PURGE_TX);
-
         }
 
 

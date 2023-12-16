@@ -10,6 +10,7 @@ using FT2232ImageOutput.MainProcessors;
 using FT2232ImageOutput.PathImages;
 using FT2232ImageOutput.PathImages.PathSources;
 using FT2232ImageOutput.PointBitMappers;
+using FT2232ImageOutput.ImageSources;
 
 namespace FT2232ImageOutput.Configs
 {
@@ -70,7 +71,7 @@ namespace FT2232ImageOutput.Configs
 
             var hardwareOutput = new FT2232HardwareOutput("A", baudrate, 102400);
 
-            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 0, true);
+            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 0);
 
             mainProcess.Start();
 

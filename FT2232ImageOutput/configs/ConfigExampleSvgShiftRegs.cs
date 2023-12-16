@@ -20,7 +20,7 @@ namespace FT2232ImageOutput.Configs
         {
             uint baudrate = 500_000;
 
-            var filepath = @"..\..\..\samplefiles\svg\circle.svg";
+            var filepath = @"..\..\..\samplefiles\lain.svg";
 
             var targetMaxValues8 = new ImageMaxValues() // XYZ 8 bit
             {
@@ -80,7 +80,7 @@ namespace FT2232ImageOutput.Configs
 
             var hardwareOutput = new FT2232HardwareOutput("A", baudrate, 10240);
 
-            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 0, true);
+            var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 0);
 
             mainProcess.Start();
 

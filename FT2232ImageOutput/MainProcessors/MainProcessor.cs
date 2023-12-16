@@ -17,7 +17,6 @@ namespace FT2232ImageOutput.MainProcessors
         private readonly IHardwareOutput _hardwareOutput;
 
         private readonly int _frameInterval;
-        private readonly bool _overflowPreventing;
         private readonly ConcurrentQueue<byte[][]> _bufQueue = new ConcurrentQueue<byte[][]>();
         private readonly int _bufQueueMax = 2;
 
@@ -27,8 +26,7 @@ namespace FT2232ImageOutput.MainProcessors
             IEnumerable<IFrameProcessor> frameProcessors,
             IPointBitMapper bitMapper,
             IHardwareOutput hardwareOutput,
-            int frameInterval,
-            bool overflowPreventing
+            int frameInterval
             )
         {
             _imageSource = imageSource;
@@ -36,7 +34,6 @@ namespace FT2232ImageOutput.MainProcessors
             _bitMapper = bitMapper;
             _hardwareOutput = hardwareOutput;
             _frameInterval = frameInterval;
-            _overflowPreventing = overflowPreventing;
         }
 
 
@@ -82,32 +79,20 @@ namespace FT2232ImageOutput.MainProcessors
 
                         var bitsw = new Stopwatch();
 
-                        foreach (var point in frame.Points.ToArray())
+                        var points = frame.Points.ToArray();
+
+                        foreach (var point in points)
                         {
                             var bits = _bitMapper.Map(point);
 
                             dataStream.Write(bits, 0, bits.Length);
-
-                            if (_overflowPreventing && 
-                                (dataStream.Length + _bitMapper.MaxBytesPerPoint * 2) > _hardwareOutput.MaxBytes)
-                            {
-                                var blankedPoint = point.Clone();
-                                blankedPoint.Blanking = true;
-                                    
-                                bits = _bitMapper.Map(blankedPoint);
-                                    
-                                dataStream.Write(bits, 0, bits.Length);
-                                
-                                // MemoryStream.ToArray() returns a copy of data
-                                frameBytes.Add(dataStream.ToArray());
-                                
-                                dataStream.SetLength(0);
-                            }
-
                         }
 
-                            
 
+                        var blankedPoint = points.Last().Clone();
+                        blankedPoint.Blanking = true;
+                        var blankedBits = _bitMapper.Map(blankedPoint); 
+                        dataStream.Write(blankedBits, 0, blankedBits.Length);
 
                         frameBytes.Add(dataStream.ToArray());
                         dataStream.SetLength(0);
@@ -176,7 +161,7 @@ namespace FT2232ImageOutput.MainProcessors
                     if (frameBytes?.Any() ?? false)
                     {
                         foreach (var fb in frameBytes.Where(b => b?.Any() ?? false))
-                            _hardwareOutput.Output(fb, _overflowPreventing);
+                            _hardwareOutput.Output(fb);
                     }
                     else 
                     {
