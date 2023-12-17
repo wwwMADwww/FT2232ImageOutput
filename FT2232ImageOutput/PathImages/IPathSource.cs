@@ -4,19 +4,16 @@ using System.Numerics;
 using System.Text;
 using ManuPath;
 
-namespace FT2232ImageOutput.PathImages
+namespace FT2232ImageOutput.PathImages;
+
+
+public interface IPathSource
 {
 
-    public interface IPathSource
-    {
+    IEnumerable<IEnumerable<Path>> GetFrames();
 
-        IEnumerable<IEnumerable<Path>> GetFrames();
+    Vector2 Size { get; }
 
-        Vector2 Size { get; }
-
-        bool Streaming { get; }
-
-    }
-
+    bool Streaming { get; }
 
 }

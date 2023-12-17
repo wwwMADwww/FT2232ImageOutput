@@ -6,72 +6,69 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FT2232ImageOutput.ImageSources
+namespace FT2232ImageOutput.ImageSources;
+
+public class MeandreImageSource : IImageSource
 {
-    public class MeandreImageSource : IImageSource
+
+    public MeandreImageSource(ImageMaxValues maxValues)
+    {
+        MaxValues = maxValues;
+    }
+
+
+    public ImageType ImageType => ImageType.Vector;
+
+    public bool Streaming => false;
+
+
+
+    public ImageMaxValues MaxValues { get; }
+
+
+
+    public IEnumerable<ImageFrame> GetFrames()
     {
 
-        public MeandreImageSource(ImageMaxValues maxValues)
+        var frames = new List<ImageFrame>();
+        
+
+        frames.Add(new ImageFrame()
         {
-            MaxValues = maxValues;
-        }
+            Duration = -1,
+            Number = 1,
+            Points = GetPoints()
+        });
 
-
-        public ImageType ImageType => ImageType.Vector;
-
-        public bool Streaming => false;
-
-
-
-        public ImageMaxValues MaxValues { get; }
-
-
-
-        public IEnumerable<ImageFrame> GetFrames()
-        {
-
-            var frames = new List<ImageFrame>();
-            
-
-            frames.Add(new ImageFrame()
-            {
-                Duration = -1,
-                Number = 1,
-                Points = GetPoints()
-            });
-
-            return frames;
-
-        }
-
-        IEnumerable<ImagePoint> GetPoints()
-        {
-            var list = new List<ImagePoint>();
-            
-            for (int i = MaxValues.MinX; i <= MaxValues.MaxX; i++)
-            {
-
-                    list.Add(new ImagePoint()
-                    {
-                        X = i,
-                        Y = (i & 1) == 0 ? MaxValues.MaxY : MaxValues.MinY,
-                        Z = MaxValues.MaxZ,
-
-                        R = MaxValues.MaxRGB,
-                        G = MaxValues.MaxRGB,
-                        B = MaxValues.MaxRGB,
-
-                        Blanking = false
-                    });
-
-
-            }
-
-            return list;
-
-        }
+        return frames;
 
     }
 
+    IEnumerable<ImagePoint> GetPoints()
+    {
+        var list = new List<ImagePoint>();
+        
+        for (int i = MaxValues.MinX; i <= MaxValues.MaxX; i++)
+        {
+
+                list.Add(new ImagePoint()
+                {
+                    X = i,
+                    Y = (i & 1) == 0 ? MaxValues.MaxY : MaxValues.MinY,
+                    Z = MaxValues.MaxZ,
+
+                    R = MaxValues.MaxRGB,
+                    G = MaxValues.MaxRGB,
+                    B = MaxValues.MaxRGB,
+
+                    Blanking = false
+                });
+
+
+        }
+
+        return list;
+
+    }
 
 }

@@ -6,42 +6,41 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FT2232ImageOutput.ImageSources
+namespace FT2232ImageOutput.ImageSources;
+
+public class IldaMultipleImageSource : IldaImageSourceBase
 {
-    public class IldaMultipleImageSource : IldaImageSourceBase
+    private readonly IEnumerable<string> _filepaths;
+
+    public IldaMultipleImageSource(IEnumerable<string> filepaths)
     {
-        private readonly IEnumerable<string> _filepaths;
+        _filepaths = filepaths;
+        
+    }
 
-        public IldaMultipleImageSource(IEnumerable<string> filepaths)
+
+    public override bool Streaming => false;
+
+    public override IEnumerable<ImageFrame> GetFrames()
+    {
+
+        var frames = new List<ImageFrame>();
+
+
+        foreach(var path in _filepaths)
         {
-            _filepaths = filepaths;
-            
-        }
+            var fullpath = Path.GetFullPath(path);
 
+            var image = ReadFile(fullpath);
 
-        public override bool Streaming => false;
-
-        public override IEnumerable<ImageFrame> GetFrames()
-        {
-
-            var frames = new List<ImageFrame>();
-
-
-            foreach(var path in _filepaths)
-            {
-                var fullpath = Path.GetFullPath(path);
-
-                var image = ReadFile(fullpath);
-
-                frames.AddRange(image);
-
-            }
-
-            return frames;
+            frames.AddRange(image);
 
         }
 
-
+        return frames;
 
     }
+
+
+
 }

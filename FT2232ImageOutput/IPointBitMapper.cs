@@ -5,12 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FT2232ImageOutput
-{
-    public interface IPointBitMapper
-    {
-        int MaxBytesPerPoint { get; }
+namespace FT2232ImageOutput;
 
-        byte[] Map(ImagePoint point);
-    }
+public interface IPointBitMapper
+{
+    int MaxBytesPerPoint { get; }
+
+    byte[] Map(ImagePoint point);
 }
