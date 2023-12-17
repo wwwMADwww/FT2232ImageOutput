@@ -7,9 +7,7 @@ It stil haven't any configuration files or GUI, so to configure something you ne
 Tips for setup and running on Linux: [Running on Linux](RunningOnLinux.md)
 
 ## Schematics
-Schematic diagrams for all modes available at [FT2232ImageOutput/diagrams](FT2232ImageOutput/diagrams/)
-
-Schematic diagrams for fully assembled device variants - [hardware](hardware)
+Schematic diagrams for all modes available at [FT2232ImageOutput/diagrams](FT2232ImageOutput/schematic/)
 
 ## Results
 
