@@ -40,7 +40,7 @@ static class ConfigExampleWavReg574
 
         var hardwareOutput = new FT2232HardwareOutput("A", baudrate, 100_000);
 
-        var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput, 0);
+        var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput);
 
         mainProcess.Start();
 

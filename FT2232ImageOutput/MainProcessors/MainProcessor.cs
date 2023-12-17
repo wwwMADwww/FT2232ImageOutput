@@ -16,7 +16,6 @@ namespace FT2232ImageOutput.MainProcessors
         private readonly IPointBitMapper _bitMapper;
         private readonly IHardwareOutput _hardwareOutput;
 
-        private readonly int _frameInterval;
         private readonly ConcurrentQueue<byte[][]> _bufQueue = new ConcurrentQueue<byte[][]>();
         private readonly int _bufQueueMax = 2;
 
@@ -25,15 +24,13 @@ namespace FT2232ImageOutput.MainProcessors
             IImageSource imageSource,
             IEnumerable<IFrameProcessor> frameProcessors,
             IPointBitMapper bitMapper,
-            IHardwareOutput hardwareOutput,
-            int frameInterval
+            IHardwareOutput hardwareOutput
             )
         {
             _imageSource = imageSource;
             _frameProcessors = frameProcessors;
             _bitMapper = bitMapper;
             _hardwareOutput = hardwareOutput;
-            _frameInterval = frameInterval;
         }
 
 
@@ -63,18 +60,8 @@ namespace FT2232ImageOutput.MainProcessors
 
                     // processedFrames = processedFrames.ToArray();
 
-
-                    var sw = new Stopwatch();
-
-                    sw.Start();
-
-                    int sleepOverhead = 0;
-
                     foreach (var frame in processedFrames) //.Where(p => p.Points.Any()))
                     {
-                        sw.Reset();
-                        sw.Start();
-
                         List<byte[]> frameBytes = new List<byte[]>();
 
                         var bitsw = new Stopwatch();
@@ -108,23 +95,7 @@ namespace FT2232ImageOutput.MainProcessors
 
                         _bufQueue.Enqueue(frameBytes.ToArray());
 
-                        sw.Stop();
-
-                        var restInterval = _frameInterval - sw.ElapsedMilliseconds - sleepOverhead;
-
-                        if (restInterval > 0)
-                        {
-                            sw.Reset();
-                            sw.Start();
-                            Thread.Sleep((int)restInterval);
-                            sw.Stop();
-
-                            sleepOverhead = (int)(sw.ElapsedMilliseconds - restInterval);
-                        }
-
                     }
-
-                    sw.Reset();
 
                     if (_imageSource.Streaming)
                         frames = _imageSource.GetFrames();
