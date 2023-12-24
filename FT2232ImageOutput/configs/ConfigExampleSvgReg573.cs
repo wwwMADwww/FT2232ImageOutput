@@ -13,7 +13,7 @@ using ManuPath.FillGenerators;
 
 namespace FT2232ImageOutput.Configs;
 
-static class ConfigExampleSvgReg574
+static class ConfigExampleSvgReg573
 {
     public static void Run()
     {
@@ -69,7 +69,7 @@ static class ConfigExampleSvgReg574
                new ScaleMaxValuesFrameProcessor(imageSource.MaxValues, targetMaxValues)
             };
 
-        var pointBitMapper = new Reg574PointBitMapper(
+        var pointBitMapper = new Reg573PointBitMapper(
             invertZ: true,
             maxValues: targetMaxValues);
 

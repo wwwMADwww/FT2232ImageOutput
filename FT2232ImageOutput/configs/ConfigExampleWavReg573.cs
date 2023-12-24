@@ -8,7 +8,7 @@ using FT2232ImageOutput.PointBitMappers;
 
 namespace FT2232ImageOutput.Configs;
 
-static class ConfigExampleWavReg574
+static class ConfigExampleWavReg573
 {
     public static void Run()
     {
@@ -34,7 +34,7 @@ static class ConfigExampleWavReg574
            new AddBlankingPointsFrameProcessor(4, 4, true)
         };
 
-        var pointBitMapper = new Reg574PointBitMapper(
+        var pointBitMapper = new Reg573PointBitMapper(
             invertZ: true,
             maxValues: targetMaxValues);
 

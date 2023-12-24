@@ -3,12 +3,12 @@ using FT2232ImageOutput.Utils;
 
 namespace FT2232ImageOutput.PointBitMappers;
 
-public class Reg574PointBitMapper : IPointBitMapper
+public class Reg573PointBitMapper : IPointBitMapper
 {
     private readonly bool _invertZ;
     private readonly ImageMaxValues _maxValues;
 
-    public Reg574PointBitMapper(bool invertZ, ImageMaxValues maxValues)
+    public Reg573PointBitMapper(bool invertZ, ImageMaxValues maxValues)
     {
         _invertZ = invertZ;
         _maxValues = maxValues;
