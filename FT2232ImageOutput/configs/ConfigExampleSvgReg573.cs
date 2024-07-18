@@ -45,7 +45,7 @@ static class ConfigExampleSvgReg573
 
             strokeConverter: new PrimitiveToEvenSegmentsConverter(
                 pointDistanceMin: pixelMin * 0.2f, 
-                pointDistanceMax: pixelMin * 0.2f + 0.1f, 
+                pointDistanceMax: pixelMin * 0.2f + 0.1f,
                 closePath: false),
 
             strokeBrightness: ColorChannel.Alpha,
@@ -73,7 +73,8 @@ static class ConfigExampleSvgReg573
             invertZ: true,
             maxValues: targetMaxValues);
 
-        var hardwareOutput = new FT2232HardwareOutput("A", baudrate, 100_000);
+        // see console output for locationId
+        var hardwareOutput = new FT2232HardwareOutput(locationId: 37, baudrate, bufferSize: 100_000);
 
         var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput);
 

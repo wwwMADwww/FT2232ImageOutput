@@ -53,7 +53,8 @@ static class ConfigMatrix
 
         var frameProcessors = new List<IFrameProcessor>() { };
 
-        var hardwareOutput = new FT2232HardwareOutput("A", baudrate, 10240);
+        // see console output for locationId
+        var hardwareOutput = new FT2232HardwareOutput(locationId: 0, baudrate, bufferSize: 10240);
         
         var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput);
 

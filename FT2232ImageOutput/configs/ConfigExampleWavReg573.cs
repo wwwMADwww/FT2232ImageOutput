@@ -38,7 +38,8 @@ static class ConfigExampleWavReg573
             invertZ: true,
             maxValues: targetMaxValues);
 
-        var hardwareOutput = new FT2232HardwareOutput("A", baudrate, 100_000);
+        // see console output for locationId
+        var hardwareOutput = new FT2232HardwareOutput(locationId: 0, baudrate, bufferSize: 100_000);
 
         var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput);
 

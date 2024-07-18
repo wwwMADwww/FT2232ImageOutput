@@ -8,23 +8,21 @@ namespace FT2232ImageOutput.HardwareOutput;
 
 public class FT2232HardwareOutput : IHardwareOutput
 {
-    protected readonly string _channelName;
+    protected readonly uint _locationId;
     protected readonly uint _baudrate;
     protected int _bufferSize;
-    protected byte[] _sendbuf;
     protected TimeSpan _maxSequentialIoErrorsTime = TimeSpan.FromSeconds(3);
 
     protected FTDI _channel;
 
     protected DateTime _sequentialIoErrorsTimeStart = default;
 
-    public FT2232HardwareOutput(string channelName, uint baudrate, int bufferSize)
+    public FT2232HardwareOutput(uint locationId, uint baudrate, int bufferSize)
     {
-        _channelName = channelName;
+        _locationId = locationId;
         _baudrate = baudrate;
         _bufferSize = bufferSize;
-        _sendbuf = new byte[_bufferSize];
-        _channel = OpenChannel(_channelName, _baudrate);
+        _channel = OpenChannel(_locationId, _baudrate);
     }
 
     public int MaxBytes => _bufferSize;
@@ -47,18 +45,9 @@ public class FT2232HardwareOutput : IHardwareOutput
 
             while (true)
             {
-                // TODO: use spans somehow
-                if (writtenTotal > 0)
-                {
-                    status = channel.Write(_sendbuf, dataBuf.Length - writtenTotal, ref written);
-                }
-                else
-                {
-                    status = channel.Write(
-                        dataBuf,
-                        dataBuf.Length - writtenTotal > _bufferSize ? _bufferSize : dataBuf.Length - writtenTotal,
-                        ref written);
-                }
+                var bufSpan = dataBuf.AsSpan((int)writtenTotal);
+
+                status = channel.Write(bufSpan, ref written);
 
                 // TODO: reconnect and retry when fails
                 // Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
@@ -84,7 +73,9 @@ public class FT2232HardwareOutput : IHardwareOutput
                     // _channel = OpenChannel(_channelName, _baudrate);
                 }
                 else
+                {
                     Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
+                }
 
                 _sequentialIoErrorsTimeStart = default;
                 break;
@@ -96,17 +87,12 @@ public class FT2232HardwareOutput : IHardwareOutput
             {
                 break;
             }
-
-            if (written > 0)
-            {
-                Array.Copy(dataBuf, writtenTotal, _sendbuf, 0, dataBuf.Length - writtenTotal);
-            }
         }
     }
 
 
 
-    protected FTDI OpenChannel(string channelName, uint baudRate)
+    protected FTDI OpenChannel(uint locationId, uint baudRate)
     {
 
         var res = new FTDI();
@@ -136,7 +122,7 @@ public class FT2232HardwareOutput : IHardwareOutput
         }
 
 
-        status = res.OpenBySerialNumber(channelName);
+        status = res.OpenByLocation(locationId);
         Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
 
         res.ResetDevice();
