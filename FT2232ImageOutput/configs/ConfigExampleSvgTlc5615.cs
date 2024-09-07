@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
-using ManuPath.FillGenerators;
-using ManuPath.PrimitiveConverters;
 using FT2232ImageOutput.FrameProcessors;
 using FT2232ImageOutput.HardwareOutput;
+using FT2232ImageOutput.ImageSources;
 using FT2232ImageOutput.MainProcessors;
-using FT2232ImageOutput.PathImages;
-using FT2232ImageOutput.PathImages.PathSources;
 using FT2232ImageOutput.PointBitMappers;
+using ManuPath.DotGenerators.FillGenerators;
+using ManuPath.DotGenerators.StrokeGenerators;
 
 namespace FT2232ImageOutput.Configs;
 
@@ -30,32 +29,40 @@ static class ConfigExampleSvgTlc5615
         };
 
         var oscilloscopeScreenSize = new Vector2(8 * 12, 8 * 12);
-        
+
         var pixelSize = new Vector2(
-            (targetMaxValues.MaxX - targetMaxValues.MinX) / oscilloscopeScreenSize.X,
-            (targetMaxValues.MaxY - targetMaxValues.MinY) / oscilloscopeScreenSize.Y
-            );
+            targetMaxValues.Width  / oscilloscopeScreenSize.X,
+            targetMaxValues.Height / oscilloscopeScreenSize.Y);
+
         var pixelMin = Math.Min(pixelSize.X, pixelSize.Y);
-        
-        var imageSource = new PathImageSource(
-            pathSource: new SvgFilePathSource(filepath),
-        
-            strokeConverter: new PrimitiveToEvenSegmentsConverter(pixelMin * 0.3f, pixelMin * 0.3f + 0.3f, false),
-            strokeBrightness: ColorChannel.Alpha,
-        
-            fillConverter: null,
-            fillGeneratorFactory: path => new IntervalDotsFillGenerator(
-                path,
-                new Vector2(1.2f, 1.2f) * pixelSize,
-                new Vector2(1.1f, 1.1f) * pixelSize
+
+        var imageSource = new SvgImageSource(
+            filepath: filepath,
+
+            strokeGeneratorFactory: figure => new EqualDistanceStrokeDotGenerator(
+                figure,
+                transform: false,
+                pointDistanceMin: 5,
+                pointDistanceMax: 6
                 ),
-            fillIntensity : ColorChannel.Alpha,
-            fillBrightness: ColorChannel.Green,
-        
-            maxValues: targetMaxValues,
-            forceNotStreaming: true
+
+            fillGeneratorFactory: figure => new IntervalFillDotGenerator(
+                figure,
+                transform: false,
+                intervalMin: pixelSize * 0,
+                intervalMax: pixelSize * 20
+                ),
+
+            strokeIntensityChannel: ColorChannel.Alpha,
+            strokeBrightnessChannel: ColorChannel.Green,
+
+            fillIntensityChannel: ColorChannel.Alpha,
+            fillBrightnessChannel: ColorChannel.Green,
+
+            maxValues: targetMaxValues
         );
 
+        imageSource.Init();
 
         var frameProcessors = new List<IFrameProcessor>() {
            new AddBlankingPointsFrameProcessor(4, 4, true)

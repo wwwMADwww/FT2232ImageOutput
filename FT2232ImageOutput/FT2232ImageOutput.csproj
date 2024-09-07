@@ -6,11 +6,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.1" />
     <PackageReference Include="NAudio.Core" Version="2.1.0" />
-    <PackageReference Include="Svg" Version="3.1.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DSS.ILDA\DSS.ILDA.csproj" />
     <ProjectReference Include="..\FTD2XX_DotNetWrapper\FTD2XX_DotNetWrapper\FTD2XX_DotNetWrapper.csproj" />
+    <ProjectReference Include="..\ManuPathLib\ManuPath.Svg\ManuPath.Svg.csproj" />
     <ProjectReference Include="..\ManuPathLib\ManuPathLib\ManuPathLib.csproj" />
   </ItemGroup>
 </Project>

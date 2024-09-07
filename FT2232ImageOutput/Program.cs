@@ -14,7 +14,7 @@ class Program
         // ConfigExampleWavMcp4921.Run();
         // ConfigExampleSvgTlc5615.Run();
         //ConfigExampleWavReg573.Run();
-         ConfigExampleSvgReg573.Run();
+        ConfigExampleSvgReg573.Run();
         // ConfigMatrix.Run();
     }
 }
