@@ -7,3 +7,6 @@
 [submodule "FTD2XX_DotNetWrapper"]
 	path = FTD2XX_DotNetWrapper
 	url = https://github.com/wwwMADwww/FTD2XX_DotNetWrapper.git
+[submodule "WolframFourierArtConverter"]
+	path = WolframFourierArtConverter
+	url = git@github.com:wwwMADwww/WolframFourierArtConverter.git

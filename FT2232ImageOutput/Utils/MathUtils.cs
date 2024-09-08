@@ -27,6 +27,15 @@ public static class MathUtils
         float scale = (float)(newEnd - newStart) / (originalEnd - originalStart);
         return (newStart + ((value - originalStart) * scale));
     }
+    
+    public static double ConvertRange(
+        double originalStart, double originalEnd, // original range
+        double newStart, double newEnd, // desired range
+        double value) // value to convert
+    {
+        var scale = (newEnd - newStart) / (originalEnd - originalStart);
+        return (newStart + ((value - originalStart) * scale));
+    }
 
 
     public static float RangePercent(float originalStart, float originalEnd, float percent)
@@ -44,6 +53,20 @@ public static class MathUtils
     public static float Distance(float x1, float y1, float x2, float y2)
     {
         return (float)Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
+    }
+
+    public static (float x, float y) AspectRatio(float width, float height)
+    {
+        return width >= height
+            ? (1.0f, height / width)
+            : (width / height, 1.0f);
+    }
+
+    public static (double x, double y) AspectRatio(double width, double height)
+    {
+        return width >= height
+            ? (1.0, height / width)
+            : (width / height, 1.0);
     }
 
 }
