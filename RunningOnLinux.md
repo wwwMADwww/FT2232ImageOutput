@@ -1,18 +1,9 @@
 # Tips for setup and running on Linux
 This may be not 100% right but works good for me.
 
-## Install .NET Core:
+## Install .NET 8:
 
-```bash
-wget https://packages.microsoft.com/config/ubuntu/19.10/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-sudo dpkg -i packages-microsoft-prod.deb
-sudo apt-get update
-sudo apt-get install apt-transport-https
-sudo apt-get update
-sudo apt-get install dotnet-runtime-3.1
-```
-
-
+*// TODO:*
 
 ## Install FTDI driver:
 
