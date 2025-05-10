@@ -68,8 +68,8 @@ static class ConfigExampleWavMcp4921
             invertZ: false,
             maxValues: targetMaxValues);
 
-        // see console output for locationId
-        var hardwareOutput = new FT2232HardwareOutput(locationId: 0, baudrate, bufferSize: 10240);
+        
+        var hardwareOutput = new FT2232HardwareOutput(baudrate, bufferSize: 10240);
 
         var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput);
 

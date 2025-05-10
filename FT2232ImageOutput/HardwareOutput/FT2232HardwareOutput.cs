@@ -8,7 +8,7 @@ namespace FT2232ImageOutput.HardwareOutput;
 
 public class FT2232HardwareOutput : IHardwareOutput
 {
-    protected readonly uint _locationId;
+    protected readonly uint? _locationId;
     protected readonly uint _baudrate;
     protected int _bufferSize;
     protected TimeSpan _maxSequentialIoErrorsTime = TimeSpan.FromSeconds(3);
@@ -17,7 +17,7 @@ public class FT2232HardwareOutput : IHardwareOutput
 
     protected DateTime _sequentialIoErrorsTimeStart = default;
 
-    public FT2232HardwareOutput(uint locationId, uint baudrate, int bufferSize)
+    public FT2232HardwareOutput(uint baudrate, int bufferSize, uint? locationId = null)
     {
         _locationId = locationId;
         _baudrate = baudrate;
@@ -92,7 +92,7 @@ public class FT2232HardwareOutput : IHardwareOutput
 
 
 
-    protected FTDI OpenChannel(uint locationId, uint baudRate)
+    protected FTDI OpenChannel(uint? locationId, uint baudRate)
     {
 
         var res = new FTDI();
@@ -121,8 +121,20 @@ public class FT2232HardwareOutput : IHardwareOutput
             Console.WriteLine($"------");
         }
 
+        if (!locationId.HasValue)
+        {
+            Console.WriteLine($"LocationID is not set. Using first device from list.");
+            locationId = devicelist.First().LocId;
+        }
+        else
+        {
+            if (!devicelist.Any(d => d.LocId == locationId))
+            {
+                throw new Exception($"FTDI device with LocationID {locationId} is not found");
+            }
+        }
 
-        status = res.OpenByLocation(locationId);
+        status = res.OpenByLocation(locationId.Value);
         Debug.Assert(status == FTDI.FT_STATUS.FT_OK);
 
         res.ResetDevice();

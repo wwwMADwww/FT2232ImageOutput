@@ -75,8 +75,8 @@ static class ConfigExampleSvgTlc5615
             invertZ: false
             );
 
-        // see console output for locationId
-        var hardwareOutput = new FT2232HardwareOutput(locationId: 0, baudrate, bufferSize: 102400);
+        
+        var hardwareOutput = new FT2232HardwareOutput(baudrate, bufferSize: 102400);
 
         var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput);
 

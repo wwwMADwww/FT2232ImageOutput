@@ -14,8 +14,9 @@ class Program
         // ConfigExampleWavMcp4921.Run();
         // ConfigExampleSvgTlc5615.Run();
         // ConfigExampleWavReg573.Run();
-        ConfigExampleSvgReg573.Run();
-        // WolframFourierArtReg573.Run();
+        // ConfigExampleSvgReg573.Run();
+        ConfigWolframFourierArtReg573.Run();
+        // ConfigTextFileReg573.Run();
         // ConfigMatrix.Run();
     }
 }

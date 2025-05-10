@@ -27,7 +27,7 @@ static class ConfigMatrix
             MinZ = 0, MaxZ = 15,
         };
 
-        var imageSource = CrateMatrix(
+        var imageSource = CreateMatrix(
             matrixSymbolsPath,
             new MatrixImageSourceConfig()
             {
@@ -51,10 +51,11 @@ static class ConfigMatrix
             maxValues: targetMaxValues
             );
 
+
         var frameProcessors = new List<IFrameProcessor>() { };
 
-        // see console output for locationId
-        var hardwareOutput = new FT2232HardwareOutput(locationId: 0, baudrate, bufferSize: 10240);
+        
+        var hardwareOutput = new FT2232HardwareOutput(baudrate, bufferSize: 10240);
         
         var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput);
 
@@ -63,7 +64,7 @@ static class ConfigMatrix
         Thread.Sleep(Timeout.Infinite);
     }
 
-    static IImageSource CrateMatrix(string dir, MatrixImageSourceConfig config, ImageMaxValues maxValues)
+    static IImageSource CreateMatrix(string dir, MatrixImageSourceConfig config, ImageMaxValues maxValues)
     {
 
         List<Symbol> symbols = new List<Symbol>();
@@ -71,10 +72,12 @@ static class ConfigMatrix
 
         var blanker = new AddBlankingPointsFrameProcessor(10, 10, true);
 
-        foreach (var file in Directory.EnumerateFiles(dir, "*.ild"))
+        var dirFull = Path.GetFullPath(dir);
+
+        foreach (var file in Directory.EnumerateFiles(dirFull, "*.ild"))
         {
 
-            var imagesource = new IldaImageSource(Path.Combine(dir, file));
+            var imagesource = new IldaImageSource(file);
 
             var scaler = new ScaleMaxValuesFrameProcessor(imagesource.MaxValues, maxValues);
 

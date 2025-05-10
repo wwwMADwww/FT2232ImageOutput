@@ -15,7 +15,7 @@ public class IldaImageSource: IldaImageSourceBase
 
     public IldaImageSource(string filename)
     {
-        _filename = filename;
+        _filename = Path.GetFullPath(filename);
     }
 
     public override bool Streaming => false;

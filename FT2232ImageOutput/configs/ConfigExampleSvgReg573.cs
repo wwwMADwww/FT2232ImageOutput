@@ -74,8 +74,8 @@ static class ConfigExampleSvgReg573
             invertZ: true,
             maxValues: targetMaxValues);
 
-        // see console output for locationId
-        var hardwareOutput = new FT2232HardwareOutput(locationId: 37, baudrate, bufferSize: 100_000);
+        
+        var hardwareOutput = new FT2232HardwareOutput(baudrate, bufferSize: 100_000);
 
         var mainProcess = new MainProcessor(imageSource, frameProcessors, pointBitMapper, hardwareOutput);
 

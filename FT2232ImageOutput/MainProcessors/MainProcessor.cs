@@ -55,18 +55,20 @@ public class MainProcessor: IMainProcessor
 
                 foreach (var fp in _frameProcessors)
                 {
-                    processedFrames = processedFrames.Select(f => fp.Process(f));
+                    processedFrames = processedFrames.Select(fp.Process);
                 }
 
                 // processedFrames = processedFrames.ToArray();
 
                 foreach (var frame in processedFrames) //.Where(p => p.Points.Any()))
                 {
-                    List<byte[]> frameBytes = new List<byte[]>();
+                    var points = frame.Points.ToArray();
+
+                    if (points.Length == 0) continue;
 
                     var bitsw = new Stopwatch();
 
-                    var points = frame.Points.ToArray();
+                    List<byte[]> frameBytes = new List<byte[]>();
 
                     foreach (var point in points)
                     {
